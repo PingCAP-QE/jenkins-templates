@@ -563,13 +563,13 @@ cd ../../..
 go mod tidy
 tidb/cmd/pluginpkg/pluginpkg -pkg-dir whitelist -out-dir whitelist
 md5sum whitelist-1.so > whitelist-1.so.md5
-curl -F builds/pingcap/tidb-plugins/test/${RELEASE_TAG}/centos7/whitelist-1.so.md5=@whitelist-1.so.md5 ${FILE_SERVER_URL}/upload
-curl -F builds/pingcap/tidb-plugins/test/${RELEASE_TAG}/centos7/whitelist-1.so=@whitelist-1.so ${FILE_SERVER_URL}/upload
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so.md5=@whitelist-1.so.md5 ${FILE_SERVER_URL}/upload
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so=@whitelist-1.so ${FILE_SERVER_URL}/upload
 go mod tidy
 tidb/cmd/pluginpkg/pluginpkg -pkg-dir enterprise-plugin/audit -out-dir enterprise-plugin/audit
 md5sum audit-1.so > audit-1.so.md5
-curl -F builds/pingcap/tidb-plugins/test/${RELEASE_TAG}/centos7/audit-1.so.md5=@audit-1.so.md5 ${FILE_SERVER_URL}/upload
-curl -F builds/pingcap/tidb-plugins/test/${RELEASE_TAG}/centos7/audit-1.so=@audit-1.so ${FILE_SERVER_URL}/upload
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so.md5=@audit-1.so.md5 ${FILE_SERVER_URL}/upload
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so=@audit-1.so ${FILE_SERVER_URL}/upload
 rm -rf ${TARGET}
 mkdir ${TARGET}/bin
 """
