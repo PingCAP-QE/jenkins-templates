@@ -556,8 +556,10 @@ fi;
 
 buildsh["enterprise-plugin"] = """
 rsync -av --progress ./ ./enterprise-plugin --exclude enterprise-plugin
-git clone https://github.com/pingcap/tidb.git --depth=1
-cd tidb/cmd/pluginpkg
+git clone https://github.com/pingcap/tidb.git
+cd tidb
+git reset --hard ${TIDB_HASH}
+cd ../tidb/cmd/pluginpkg
 go build 
 cd ../../..
 go mod tidy
