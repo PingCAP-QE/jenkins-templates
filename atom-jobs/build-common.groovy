@@ -560,28 +560,30 @@ fi;
 """
 
 buildsh["enterprise-plugin"] = """
+cd ../
+rm -rf tidb
 git clone https://github.com/pingcap/tidb.git
 cd tidb
 git reset --hard ${TIDB_HASH}
-cd ../tidb/cmd/pluginpkg
+cd cmd/pluginpkg
 go build 
-cd ../../..
+cd ../../../enterprise-plugin
 cd whitelist
 go mod tidy
 cd ..
-tidb/cmd/pluginpkg/pluginpkg -pkg-dir whitelist -out-dir whitelist
+../tidb/cmd/pluginpkg/pluginpkg -pkg-dir whitelist -out-dir whitelist
 md5sum whitelist/whitelist-1.so > whitelist/whitelist-1.so.md5
 curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so.md5=@whitelist/whitelist-1.so.md5 ${FILE_SERVER_URL}/upload
 curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so=@whitelist/whitelist-1.so ${FILE_SERVER_URL}/upload
 cd audit
 go mod tidy
 cd ..
-tidb/cmd/pluginpkg/pluginpkg -pkg-dir audit -out-dir audit
+../tidb/cmd/pluginpkg/pluginpkg -pkg-dir audit -out-dir audit
 md5sum audit/audit-1.so > audit/audit-1.so.md5
 curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so.md5=@audit/audit-1.so.md5 ${FILE_SERVER_URL}/upload
 curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so=@audit/audit-1.so ${FILE_SERVER_URL}/upload
 rm -rf ${TARGET}
-mkdir ${TARGET}/bin
+mkdir -p ${TARGET}/bin
 """
 
 def packageBinary() {
@@ -602,6 +604,8 @@ def packageBinary() {
         tar --exclude=${TARGET}.tar.gz -czvf ${TARGET}.tar.gz *
         curl -F ${OUTPUT_BINARY}=@${TARGET}.tar.gz ${FILE_SERVER_URL}/upload
         """
+    } else if (PRODUCT == "enterprise-plugin") {
+        println "Do not need to package enterprise-plugin"
     } else {
         sh """
         cd ${TARGET}
