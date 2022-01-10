@@ -560,23 +560,26 @@ fi;
 """
 
 buildsh["enterprise-plugin"] = """
-cp -r enterprise-plugin/* ./
 git clone https://github.com/pingcap/tidb.git
 cd tidb
 git reset --hard ${TIDB_HASH}
 cd ../tidb/cmd/pluginpkg
 go build 
 cd ../../..
+cd whitelist
 go mod tidy
+cd ..
 tidb/cmd/pluginpkg/pluginpkg -pkg-dir whitelist -out-dir whitelist
-md5sum whitelist-1.so > whitelist-1.so.md5
-curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so.md5=@whitelist-1.so.md5 ${FILE_SERVER_URL}/upload
-curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so=@whitelist-1.so ${FILE_SERVER_URL}/upload
+md5sum whitelist/whitelist-1.so > whitelist/whitelist-1.so.md5
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so.md5=@whitelist/whitelist-1.so.md5 ${FILE_SERVER_URL}/upload
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/whitelist-1.so=@whitelist/whitelist-1.so ${FILE_SERVER_URL}/upload
+cd audit
 go mod tidy
-tidb/cmd/pluginpkg/pluginpkg -pkg-dir enterprise-plugin/audit -out-dir enterprise-plugin/audit
-md5sum audit-1.so > audit-1.so.md5
-curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so.md5=@audit-1.so.md5 ${FILE_SERVER_URL}/upload
-curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so=@audit-1.so ${FILE_SERVER_URL}/upload
+cd ..
+tidb/cmd/pluginpkg/pluginpkg -pkg-dir audit -out-dir audit
+md5sum audit/audit-1.so > audit/audit-1.so.md5
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so.md5=@audit/audit-1.so.md5 ${FILE_SERVER_URL}/upload
+curl -F builds/pingcap/tidb-plugins/${RELEASE_TAG}/centos7/audit-1.so=@audit/audit-1.so ${FILE_SERVER_URL}/upload
 rm -rf ${TARGET}
 mkdir ${TARGET}/bin
 """
