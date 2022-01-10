@@ -62,6 +62,11 @@ properties([
                         name: 'TARGET_BRANCH',
                         trim: true
                 ),
+                string(
+                        defaultValue: '',
+                        name: 'TIDB_HASH',
+                        trim: true
+                ),
                 booleanParam(
                         defaultValue: true,
                         name: 'FORCE_REBUILD'
