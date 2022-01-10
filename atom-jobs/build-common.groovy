@@ -460,8 +460,14 @@ if [ ${OS} == 'darwin' ]; then
     ls -l ./release-darwin/tiflash/
     mv release-darwin ${TARGET}
 else
-    NPROC=12 release-centos7/build/build-release.sh
-    mv release-centos7 ${TARGET}
+    # check if LLVM toolchain is provided
+    if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]; then
+        NPROC=12 release-centos7-llvm/scripts/build-release.sh
+        mv release-centos7-llvm ${TARGET}
+    else
+        NPROC=12 release-centos7/build/build-release.sh
+        mv release-centos7 ${TARGET}
+    fi
 fi
 rm -rf ${TARGET}/build-release || true
 """
