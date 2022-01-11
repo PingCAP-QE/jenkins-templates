@@ -621,17 +621,34 @@ def packageBinary() {
     }
 }
 
-def release() {
+def release(product, label) {
     // if has built,skip build.
     if (ifFileCacheExists()) {
         return
     }
+
     checkoutCode()
-    // some build need this token.
-    withCredentials([string(credentialsId: 'sre-bot-token', variable: 'TOKEN')]) {
-        sh buildsh[params.PRODUCT]
+
+    if (PRODUCT == 'tics') {
+        if (fileExists('release-centos7-llvm/scripts/build-release.sh')) {
+            label = "tiflash-llvm"
+        }
     }
-    packageBinary()
+
+    // some build need this token.
+    if (label != '') {
+        container(label) {
+            withCredentials([string(credentialsId: 'sre-bot-token', variable: 'TOKEN')]) {
+                sh buildsh[product]
+            }
+            packageBinary()
+        }
+    } else {
+        withCredentials([string(credentialsId: 'sre-bot-token', variable: 'TOKEN')]) {
+            sh buildsh[product]
+        }
+        packageBinary()
+    }
 }
 
 
@@ -639,13 +656,7 @@ stage("Build ${PRODUCT}") {
     node(nodeLabel) {
         dir("go/src/github.com/pingcap/${PRODUCT}") {
             deleteDir()
-            if (containerLabel != "") {
-                container(containerLabel){
-                    release()
-                }
-            }else {
-                release()
-            }
+            release(PRODUCT, containerLabel)
         }
     }
 }
