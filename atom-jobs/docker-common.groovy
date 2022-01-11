@@ -82,11 +82,8 @@ if (PRODUCT == "tics" ) {
 // 定义非默认的构建镜像脚本
 buildImgagesh = [:]
 buildImgagesh["tics"] = """
-if [ ${RELEASE_TAG} == "" ];then  
-    while ! make image_tiflash_ci ;do echo "fail @ `date "+%Y-%m-%d %H:%M:%S"`"; sleep 60; done
-else
-    while ! make image_tiflash_release ;do echo "fail @ `date "+%Y-%m-%d %H:%M:%S"`"; sleep 60; done
-fi;
+curl -o Dockerfile ${DOCKERFILE}
+docker build -t ${imagePlaceHolder} .
 """
 
 buildImgagesh["monitoring"] = """
