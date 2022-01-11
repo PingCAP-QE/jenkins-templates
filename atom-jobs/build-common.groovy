@@ -463,10 +463,13 @@ else
     # check if LLVM toolchain is provided
     if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]; then
         NPROC=12 release-centos7-llvm/scripts/build-release.sh
-        mv release-centos7-llvm ${TARGET}
+        mkdir -p ${TARGET}
+        mv release-centos7-llvm/tiflash ${TARGET}/tiflash
+
     else
         NPROC=12 release-centos7/build/build-release.sh
-        mv release-centos7 ${TARGET}
+        mkdir -p ${TARGET}
+        mv release-centos7/tiflash ${TARGET}/tiflash
     fi
 fi
 rm -rf ${TARGET}/build-release || true
