@@ -83,7 +83,13 @@ if (PRODUCT == "tics" ) {
 buildImgagesh = [:]
 buildImgagesh["tics"] = """
 curl -o Dockerfile ${DOCKERFILE}
-docker build -t ${imagePlaceHolder} .
+if [[ ${RELEASE_TAG} == "" ]]; then
+    # No release tag, the image may be used in testings
+    docker build -t ${imagePlaceHolder} . --build-arg INSTALL_MYSQL=1
+else
+    # Release tag provided, do not intall test utils
+    docker build -t ${imagePlaceHolder} . --build-arg INSTALL_MYSQL=0
+fi
 """
 
 buildImgagesh["monitoring"] = """
