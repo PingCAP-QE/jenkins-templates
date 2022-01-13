@@ -81,7 +81,7 @@ properties([
                         defaultValue: false
                 ),
                 booleanParam(
-                        name: 'UPDATE_TIFLASH_CACHE'
+                        name: 'UPDATE_TIFLASH_CACHE',
                         defaultValue: false
                 ),
     ])
