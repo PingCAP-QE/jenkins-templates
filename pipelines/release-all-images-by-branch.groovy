@@ -52,6 +52,11 @@ def release_one(repo,failpoint) {
     if (repo == "br" && GIT_BRANCH.startsWith("release-") && GIT_BRANCH >= "release-5.2") {
         actualRepo = "tidb"
     }
+
+    if (repo == "dumpling" && GIT_BRANCH.startsWith("release-") && GIT_BRANCH >= "release-5.2") {
+        actualRepo = "tidb"
+    }
+
     if (repo == "ticdc") {
         actualRepo = "tiflow"
     }
