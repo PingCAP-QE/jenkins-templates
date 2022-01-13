@@ -466,11 +466,11 @@ if [ ${OS} == 'darwin' ]; then
     mv release-darwin ${TARGET}
 else
     # check if LLVM toolchain is provided
-    if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]; then
+    if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]
+    then
         NPROC=12 release-centos7-llvm/scripts/build-release.sh
         mkdir -p ${TARGET}
         mv release-centos7-llvm/tiflash ${TARGET}/tiflash
-
     else
         NPROC=12 release-centos7/build/build-release.sh
         mkdir -p ${TARGET}
@@ -483,15 +483,17 @@ rm -rf ${TARGET}/build-release || true
 if (params.UPDATE_TIFLASH_CACHE) {
     // override build script if this build is to update tiflash cache
     buildsh["tics"] = """
-    if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]; then
+    if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]
+    then
         NPROC=12 CMAKE_BUILD_TYPE=RELWITHDEBINFO BUILD_BRANCH=${params.TARGET_BRANCH} BUILD_UPDATE_DEBUG_CI_CCACHE=true UPDATE_CCACHE=true release-centos7-llvm/scripts/build-tiflash-ci.sh
-        NPROC=12 CMAKE_BUILD_TYPE=Debug BUILD_BRANCH=${params.TARGET_BRANCH} UPDATE_CCACHE=true release-centos7-llvm/scripts/build-tiflash-ut-coverage.sh; fi
+        NPROC=12 CMAKE_BUILD_TYPE=Debug BUILD_BRANCH=${params.TARGET_BRANCH} UPDATE_CCACHE=true release-centos7-llvm/scripts/build-tiflash-ut-coverage.sh
         mkdir -p ${TARGET}
         mv release-centos7-llvm/tiflash ${TARGET}/tiflash
     else
         NPROC=12 CMAKE_BUILD_TYPE=RELWITHDEBINFO BUILD_BRANCH=${params.TARGET_BRANCH} BUILD_UPDATE_DEBUG_CI_CCACHE=true UPDATE_CCACHE=true release-centos7/build/build-tiflash-ci.sh
-        if [[ -f release-centos7/build/build-tiflash-ut-coverage.sh ]]; then
-            NPROC=12 CMAKE_BUILD_TYPE=Debug BUILD_BRANCH=${params.TARGET_BRANCH} UPDATE_CCACHE=true release-centos7/build/build-tiflash-ut-coverage.sh;
+        if [[ -f release-centos7/build/build-tiflash-ut-coverage.sh ]]
+        then
+            NPROC=12 CMAKE_BUILD_TYPE=Debug BUILD_BRANCH=${params.TARGET_BRANCH} UPDATE_CCACHE=true release-centos7/build/build-tiflash-ut-coverage.sh
         fi
         mkdir -p ${TARGET}
         mv release-centos7/tiflash ${TARGET}/tiflash
