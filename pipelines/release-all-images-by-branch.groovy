@@ -53,7 +53,7 @@ def release_one(repo,failpoint) {
         actualRepo = "tidb"
     }
 
-    if (repo == "dumpling" && GIT_BRANCH.startsWith("release-") && GIT_BRANCH >= "release-5.2") {
+    if (repo == "dumpling" && GIT_BRANCH.startsWith("release-") && GIT_BRANCH >= "release-5.3") {
         actualRepo = "tidb"
     }
 
