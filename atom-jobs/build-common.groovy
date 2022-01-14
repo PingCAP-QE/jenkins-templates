@@ -458,6 +458,14 @@ if [ ${EDITION} == 'enterprise' ]; then
     export TIFLASH_EDITION=Enterprise
 fi;
 if [ ${OS} == 'darwin' ]; then
+    if [ ${ARCH} == "arm64" ]; then
+        cd ..
+        cp -f /Users/pingcap/birdstorm/fix-poco.sh ./
+        cp -f /Users/pingcap/birdstorm/fix-libdaemon.sh ./
+        ./fix-poco.sh
+        ./fix-libdaemon.sh
+        cd tics
+    fi
     export PROTOC=/usr/local/bin/protoc
     export PATH=/usr/local/opt/binutils/bin:/usr/local/bin:/Users/pingcap/.cargo/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${GO_BIN_PATH}
     mkdir -p release-darwin/build/
