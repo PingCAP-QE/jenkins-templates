@@ -193,6 +193,9 @@ if (params.OS == "darwin" && params.ARCH == "arm64") {
     binPath = "/opt/homebrew/bin:/opt/homebrew/sbin:/Users/pingcap/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/pingcap/.cargo/bin:${GO_BIN_PATH}:/usr/local/opt/binutils/bin/"
     nodeLabel = "mac-arm"
     containerLabel = ""
+    if (params.PRODUCT == "tics"){
+        nodeLabel = "mac-arm-tiflash"
+    }
 }
 
 // define git url and git ref.
