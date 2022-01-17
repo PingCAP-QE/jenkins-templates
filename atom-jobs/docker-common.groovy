@@ -71,7 +71,7 @@ def download() {
 // 构建出的镜像名称
 imagePlaceHolder = UUID.randomUUID().toString()
 // 使用非默认脚本构建镜像，构建出的镜像名称需要在下面定义 
-if (PRODUCT == "tics" ) {
+if (PRODUCT == "tics" || PRODUCT == "tiflash" ) {
     if (RELEASE_TAG.length() > 1) {
         imagePlaceHolder = "hub.pingcap.net/tiflash/tiflash-server-centos7"
     }else {
