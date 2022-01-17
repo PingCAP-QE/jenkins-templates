@@ -92,6 +92,18 @@ else
 fi
 """
 
+buildImgagesh["tiflash"] = """
+curl -o Dockerfile ${DOCKERFILE}
+if [[ ${RELEASE_TAG} == "" ]]; then
+    # No release tag, the image may be used in testings
+    docker build -t ${imagePlaceHolder} . --build-arg INSTALL_MYSQL=1
+else
+    # Release tag provided, do not install test utils
+    docker build -t ${imagePlaceHolder} . --build-arg INSTALL_MYSQL=0
+fi
+"""
+
+
 buildImgagesh["monitoring"] = """
 docker build -t ${imagePlaceHolder} .
 """
