@@ -11,7 +11,7 @@ properties([
                         trim: true
                 ),
                 booleanParam(
-                        defaultValue: true,
+                        defaultValue: false,
                         name: 'FORCE_REBUILD'
                 )
         ]),
