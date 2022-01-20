@@ -83,7 +83,7 @@ if (PRODUCT == "tics" || PRODUCT == "tiflash" ) {
 buildImgagesh = [:]
 buildImgagesh["tics"] = """
 curl -o Dockerfile ${DOCKERFILE}
-if [[ ${RELEASE_TAG} == "" ]]; then
+if [[ "${RELEASE_TAG}" == "" ]]; then
     # No release tag, the image may be used in testings
     docker build -t ${imagePlaceHolder} . --build-arg INSTALL_MYSQL=1
 else
@@ -94,7 +94,7 @@ fi
 
 buildImgagesh["tiflash"] = """
 curl -o Dockerfile ${DOCKERFILE}
-if [[ ${RELEASE_TAG} == "" ]]; then
+if [[ "${RELEASE_TAG}" == "" ]]; then
     # No release tag, the image may be used in testings
     docker build -t ${imagePlaceHolder} . --build-arg INSTALL_MYSQL=1
 else
