@@ -38,7 +38,7 @@ def get_sha(repo) {
     return sh(returnStdout: true, script: "python gethash.py -repo=${repo} -version=${GIT_BRANCH} -s=${FILE_SERVER_URL}").trim()
 }
 
-RELEASE_TAG = "v5.4.0-nightly"
+RELEASE_TAG = "v5.5.0-nightly"
 if (GIT_BRANCH.startsWith("release-")) {
     RELEASE_TAG = "v"+ trimPrefix(GIT_BRANCH) + ".0-nightly"
 }
