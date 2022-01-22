@@ -326,7 +326,7 @@ if [[ ${ARCH} == 'arm64' ||  ${OS} == 'darwin' ]]; then
 fi;
 git checkout .
 if [ ${EDITION} == 'enterprise' ]; then
-    export TIDB_EDITION=Enterprise
+    export PD_EDITION=Enterprise
 fi;
 if [ ${failpoint} == 'true' ]; then
     make failpoint-enable
