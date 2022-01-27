@@ -672,7 +672,7 @@ def release(product, label) {
     checkoutCode()
 
     if (PRODUCT == 'tics') {
-        if (fileExists('release-centos7-llvm/scripts/build-release.sh')) {
+        if (fileExists('release-centos7-llvm/scripts/build-release.sh') && params.OS != "darwin") {
             label = "tiflash-llvm"
         }
     }
