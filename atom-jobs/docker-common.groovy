@@ -60,10 +60,6 @@ if (params.PRODUCT.length() <= 1) {
     PRODUCT = REPO
 }
 
-def cleanup() {
-    sh "rm -rf ./"
-}
-
 // download binarys
 binarys = params.INPUT_BINARYS.split(",")
 def download() {
@@ -191,7 +187,7 @@ def release_images() {
 }
 
 def release() {
-    cleanup()
+    deleteDir()
     download()
     build_image()
     release_images()
