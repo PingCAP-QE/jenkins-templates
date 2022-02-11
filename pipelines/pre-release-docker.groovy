@@ -107,7 +107,7 @@ def release_one(repo,arch,failpoint) {
 
     def image = "hub.pingcap.net/qa/${imageName}:${IMAGE_TAG},pingcap/${imageName}:${IMAGE_TAG}"
     if (failpoint) {
-        image = "hub.pingcap.net/qa/${repo}:${IMAGE_TAG}-failpoint"
+        image = "hub.pingcap.net/qa/${imageName}:${IMAGE_TAG}-failpoint"
     }
 
     def paramsDocker = [
@@ -201,6 +201,14 @@ stage ("release") {
                     release_one(product,"amd64",false)
                 }
             }
+                
+            failpointRepos = ["tidb","pd","tikv"]
+            for (item in failpointRepos) {
+                def product = "${item}"
+                builds["build ${item} failpoint"] = {
+                    release_one(product,"amd64",true)
+                }
+            }
 
             if (RELEASE_BRANCH == "release-5.1") {
                 for (item in releaseRepos) {
@@ -209,15 +217,16 @@ stage ("release") {
                         release_one(product,"arm64",false)
                     }
                 }
+                failpointRepos = ["tidb","pd","tikv"]
+                    for (item in failpointRepos) {
+                        def product = "${item}"
+                        builds["build ${item} arm64 failpoint"] = {
+                            release_one(product,"arm64",true)
+                        }
+                    }
             }
 
-            failpointRepos = ["tidb","pd","tikv"]
-            for (item in failpointRepos) {
-                def product = "${item}"
-                builds["build ${item} failpoint"] = {
-                    release_one(product,"amd64",true)
-                }
-            }
+        
             parallel builds
         }
     }
