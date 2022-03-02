@@ -252,8 +252,12 @@ def buildBinaryByTag(repo, tag) {
     }
 }
 
-def notifyToFeishu(repo, tag) {
+def notifyToFeishu(repo, tag, binary_path, docker_image_name, build_url) {
     println "notify to feishu: ${repo} ${tag}"
+    sh """
+    wget ${FILE_SERVER_URL}/download/rd-index-agent/hotfix_builder_notify/tiinsights-hotfix-builder-notify.py
+    python3 tiinsights-hotfix-builder-notify.py ${repo} ${tag} ${binary_path} ${docker_image_name} ${build_url}
+    """
 }
 
 
