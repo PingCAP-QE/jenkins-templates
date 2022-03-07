@@ -572,11 +572,8 @@ if [[ ${OS} == 'darwin' ]]; then
     export PATH=${binPath}
 fi;
 if [ ${OS} == 'linux' ]; then
-    grpcio_ver=`grep -A 1 'name = "grpcio"' Cargo.lock | tail -n 1 | cut -d '"' -f 2`
-    if [[ ! "0.8.0" > "\$grpcio_ver" ]]; then
-        echo using gcc 8
-        source /opt/rh/devtoolset-8/enable
-    fi;
+    echo using gcc 8
+    source /opt/rh/devtoolset-8/enable
 fi;
 if [ ${failpoint} == 'true' ]; then
     CARGO_TARGET_DIR=.target ROCKSDB_SYS_STATIC=1 make fail_release
@@ -596,11 +593,8 @@ if [ ${RELEASE_TAG}x != ''x ];then
     git branch -D refs/tags/${RELEASE_TAG} || true
     git checkout -b refs/tags/${RELEASE_TAG}
 fi;
-grpcio_ver=`grep -A 1 'name = "grpcio"' Cargo.lock | tail -n 1 | cut -d '"' -f 2`
-if [[ ! "0.8.0" > "\$grpcio_ver" ]]; then
-    echo using gcc 8
-    source /opt/rh/devtoolset-8/enable
-fi
+echo using gcc 8
+source /opt/rh/devtoolset-8/enable
 if [[ ${ARCH} == 'arm64' ]]; then
     ROCKSDB_SYS_SSE=0 make release
 else
