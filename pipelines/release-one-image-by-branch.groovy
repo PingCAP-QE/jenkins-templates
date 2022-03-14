@@ -58,7 +58,7 @@ def release_one(repo) {
 
     def dockerfile = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-amd64/${repo}"
     def image = "hub-new.pingcap.net/qa/${repo}:${IMAGE_TAG}"
-    if (repo == "tics") {
+    if (repo == "tiflash") {
         image = image + ",hub-new.pingcap.net/qa/tiflash:${IMAGE_TAG}"
     }
     def paramsDocker = [
