@@ -94,7 +94,7 @@ def release_one(repo,arch,failpoint) {
 
     def dockerfile = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-${arch}/${repo}"
     def imageName = repo
-    if (repo == "tics") {
+    if (repo == "tiflash") {
         imageName = "tiflash"
         dockerfile = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-${arch}/tiflash"
     }
@@ -193,7 +193,7 @@ def release_one(repo,arch,failpoint) {
 stage ("release") {
     node("${GO_BUILD_SLAVE}") {
         container("golang") {
-            releaseRepos = ["dumpling","br","ticdc","tidb-binlog","tics","tidb","tikv","pd","monitoring","ng-monitoring"]
+            releaseRepos = ["dumpling","br","ticdc","tidb-binlog","tiflash","tidb","tikv","pd","monitoring","ng-monitoring"]
             builds = [:]
             for (item in releaseRepos) {
                 def product = "${item}"

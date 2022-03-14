@@ -119,9 +119,6 @@ def parseBuildInfo(repo) {
     if (repo == "dm") {
         actualRepo = "tiflow"
     }
-    // if (repo == "tiflash") {
-    //     actualRepo = "tics"
-    // }
     // TODO: tidb-lightning is so complex !!!
     // tidb-lightning is a part of br, and br is merged to tidb from release-5.2, so we need to use tidb as actual repo
     if (repo == "tidb-lightning") { // Notice: the code of br has been merged to tidb from release-5.2, so we need to use tidb as actual repo
@@ -140,11 +137,11 @@ def parseBuildInfo(repo) {
     }
     println "repo: ${repo}, actualRepo: ${actualRepo}, sha1: ${sha1}"
 
-    // tics need use tiflash dockerfile
-    // tics has not  failpoint or debug image.
+    // tiflash need use tiflash dockerfile
+    // tiflash has not  failpoint or debug image.
     //  repo support enable failpoint: tidb / tikv / pd / br
     //  repo support support debug image(amd64): br / dumpling / pd / ticdc / tidb / tidb-binlog / tidb-lightning / tikv 
-    // if (repo == "tics") {
+    // if (repo == "tiflash") {
     //     imageName = "${HARBOR_PROJECT_PREFIX}/${repo}:${GIT_BRANCH},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}"
     //     imageNameAmd64 = "${HARBOR_PROJECT_PREFIX}/${repo}:${GIT_BRANCH}-amd64,${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-amd64"
     //     imageNameArm64 = "${HARBOR_PROJECT_PREFIX}/${repo}:${GIT_BRANCH}-arm64,${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-arm64"
@@ -167,13 +164,13 @@ def parseBuildInfo(repo) {
     def binaryAmd64Failpoint = "builds/pingcap/${repo}/test/failpoint/${GIT_BRANCH}/${sha1}/linux-amd64/${repo}.tar.gz"
     def binaryArm64Failpoint = "builds/pingcap/${repo}/test/failpoint/${GIT_BRANCH}/${sha1}/linux-arm64/${repo}.tar.gz"
 
-    if (repo == "tics") {
+    if (repo == "tiflash") {
         dockerfileAmd64 = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-amd64/tiflash"
         dockerfileArm64 = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-arm64/tiflash"
     }
     // if (repo == "tiflash") {
-    //     binaryAmd64 = "builds/pingcap/tics/test/${GIT_BRANCH}/${sha1}/linux-amd64/tics.tar.gz"
-    //     binaryArm64 = "builds/pingcap/test/tics/${sha1}/centos7/tics-linux-arm64.tar.gz"
+    //     binaryAmd64 = "builds/pingcap/tiflash/test/${GIT_BRANCH}/${sha1}/linux-amd64/tiflash.tar.gz"
+    //     binaryArm64 = "builds/pingcap/test/tiflash/${sha1}/centos7/tiflash-linux-arm64.tar.gz"
     // }
     if (repo == "tidb-lightning") {
         // Notice: the code of br has been merged to tidb from release-5.2, so we need to use tidb binary
@@ -244,7 +241,7 @@ def release_one_normal(repo) {
         if (repo == "tidb-lightning") {
             dockerProduct = "br"
         }
-        if (repo == "tics") {
+        if (repo == "tiflash") {
             amd64Images = "${buildInfo.imageNameAmd64},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-linux-amd64"
             arm64Images = "${buildInfo.imageNameArm64},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-linux-arm64"
         }
@@ -307,7 +304,7 @@ EOF
                     chmod +x manifest-tool
                     ./manifest-tool push from-spec manifest-${repo}-${GIT_BRANCH}.yaml
                     """
-                    if (repo == "tics") {
+                    if (repo == "tiflash") {
                         sh """
                         docker login -u ${ harborUser} -p ${harborPassword} hub.pingcap.net
                         cat <<EOF > manifest-tiflash-${GIT_BRANCH}.yaml
@@ -333,7 +330,7 @@ EOF
                     }
                 }
                 archiveArtifacts artifacts: "manifest-${repo}-${GIT_BRANCH}.yaml", fingerprint: true
-                if (repo == "tics") {
+                if (repo == "tiflash") {
                     archiveArtifacts artifacts: "manifest-tiflash-${GIT_BRANCH}.yaml", fingerprint: true
                 }
             }
@@ -347,7 +344,7 @@ EOF
         if (repo == "tidb-lightning") {
             dockerProduct = "br"
         }
-        if (repo == "tics") {
+        if (repo == "tiflash") {
             amd64Images = "${buildInfo.imageNameAmd64},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-linux-amd64"
         }
         def paramsDockerAmd64 = [       
@@ -547,7 +544,7 @@ node("${GO_BUILD_SLAVE}") {
                 release_master_monitoring()
             }
         }
-        releaseRepos = ["tics"]
+        releaseRepos = ["tiflash"]
         for (item in releaseRepos) {
             def String product = "${item}"
             builds["${item}-build"] = {

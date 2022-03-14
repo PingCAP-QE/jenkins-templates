@@ -71,7 +71,7 @@ def download() {
 // 构建出的镜像名称
 imagePlaceHolder = UUID.randomUUID().toString()
 // 使用非默认脚本构建镜像，构建出的镜像名称需要在下面定义 
-if (PRODUCT == "tics" || PRODUCT == "tiflash" ) {
+if (PRODUCT == "tiflash" || PRODUCT == "tiflash" ) {
     if (RELEASE_TAG.length() > 1) {
         imagePlaceHolder = "hub.pingcap.net/tiflash/tiflash-server-centos7"
     }else {
@@ -81,7 +81,7 @@ if (PRODUCT == "tics" || PRODUCT == "tiflash" ) {
 
 // 定义非默认的构建镜像脚本
 buildImgagesh = [:]
-buildImgagesh["tics"] = """
+buildImgagesh["tiflash"] = """
 curl -o Dockerfile ${DOCKERFILE}
 if [[ "${RELEASE_TAG}" == "" ]]; then
     # No release tag, the image may be used in testings

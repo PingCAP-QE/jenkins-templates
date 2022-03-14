@@ -170,7 +170,7 @@ if (params.PRODUCT == "tikv" || params.PRODUCT == "importer") {
     nodeLabel = "build"
     containerLabel = "rust"
 } 
-if (params.PRODUCT == "tics") {
+if (params.PRODUCT == "tiflash") {
     nodeLabel = "build_tiflash"
     containerLabel = "tiflash"
 } 
@@ -178,7 +178,7 @@ if (params.ARCH == "arm64" && params.OS == "linux") {
     binPath = "/usr/local/node/bin:/root/.cargo/bin:/usr/lib64/ccache:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin:${GO_BIN_PATH}"
     nodeLabel = "arm"
     containerLabel = ""
-    if (params.PRODUCT == "tics"){
+    if (params.PRODUCT == "tiflash"){
         nodeLabel = "tiflash_build_arm"
         containerLabel = "tiflash"
     }
@@ -193,7 +193,7 @@ if (params.OS == "darwin" && params.ARCH == "arm64") {
     binPath = "/opt/homebrew/bin:/opt/homebrew/sbin:/Users/pingcap/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/pingcap/.cargo/bin:${GO_BIN_PATH}:/usr/local/opt/binutils/bin/"
     nodeLabel = "mac-arm"
     containerLabel = ""
-    if (params.PRODUCT == "tics"){
+    if (params.PRODUCT == "tiflash"){
         nodeLabel = "mac-arm-tiflash"
     }
 }
@@ -489,7 +489,7 @@ mkdir -p ${TARGET}/bin
 cp bin/* ${TARGET}/bin/   
 """
 
-buildsh["tics"] = """
+buildsh["tiflash"] = """
 if [ ${RELEASE_TAG}x != ''x ];then
     for a in \$(git tag --contains ${GIT_HASH}); do echo \$a && git tag -d \$a;done
     git tag -f ${RELEASE_TAG} ${GIT_HASH}
@@ -506,7 +506,7 @@ if [ ${OS} == 'darwin' ]; then
         cp -f /Users/pingcap/birdstorm/fix-libdaemon.sh ./
         ./fix-poco.sh
         ./fix-libdaemon.sh
-        cd tics
+        cd tiflash
     fi
     export PROTOC=/usr/local/bin/protoc
     export PATH=/usr/local/opt/binutils/bin:/usr/local/bin:/Users/pingcap/.cargo/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${GO_BIN_PATH}
@@ -537,7 +537,7 @@ rm -rf ${TARGET}/build-release || true
 
 if (params.UPDATE_TIFLASH_CACHE) {
     // override build script if this build is to update tiflash cache
-    buildsh["tics"] = """
+    buildsh["tiflash"] = """
     if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]
     then
         NPROC=12 CMAKE_BUILD_TYPE=RELWITHDEBINFO BUILD_BRANCH=${params.TARGET_BRANCH} BUILD_UPDATE_DEBUG_CI_CCACHE=true UPDATE_CCACHE=true release-centos7-llvm/scripts/build-tiflash-ci.sh
@@ -709,7 +709,7 @@ def release(product, label) {
 
     checkoutCode()
 
-    if (PRODUCT == 'tics') {
+    if (PRODUCT == 'tiflash') {
         if (fileExists('release-centos7-llvm/scripts/build-release.sh') && params.OS != "darwin") {
             label = "tiflash-llvm"
         }
