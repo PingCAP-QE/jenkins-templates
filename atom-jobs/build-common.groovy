@@ -11,7 +11,7 @@
 * @FORCE_REBUILD(bool:if force rebuild binary,default true,Optional)
 * @FAILPOINT(bool:build failpoint binary or not,only for tidb,tikv,pd now ,default false,Optional)
 * @EDITION(enumerate:,community,enterprise,Required)
-* @USE_TIFLASH_RUST_CACHE(string: use rust code cache, for tiflash only, default 'false', Optional)
+* @USE_TIFLASH_RUST_CACHE(string: use rust code cache, for tiflash only, default false, Optional)
 */
 
 properties([
