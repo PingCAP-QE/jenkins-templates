@@ -524,7 +524,7 @@ if [ ${OS} == 'darwin' ]; then
     ls -l ./release-darwin/tiflash/
     mv release-darwin ${TARGET}
 else
-    if [ ${params.USE_TIFLASH_RUST_CACHE} == 'true' ]; then
+    if [ "${params.USE_TIFLASH_RUST_CACHE}" == "true" ]; then
         mkdir -p ~/.cargo/registry
         mkdir -p ~/.cargo/git
         mkdir -p /rust/registry/cache
