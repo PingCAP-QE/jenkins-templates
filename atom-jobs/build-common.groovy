@@ -80,10 +80,6 @@ properties([
                         name: 'NEED_SOURCE_CODE',
                         defaultValue: false
                 ),
-                booleanParam(
-                        name: 'USE_TIFLASH_RUST_CACHE',
-                        defaultValue: false
-                ),
     ])
 ])
 
