@@ -11,7 +11,7 @@
 * @FORCE_REBUILD(bool:if force rebuild binary,default true,Optional)
 * @FAILPOINT(bool:build failpoint binary or not,only for tidb,tikv,pd now ,default false,Optional)
 * @EDITION(enumerate:,community,enterprise,Required)
-* @UPDATE_TIFLASH_CACHE(bool: update ci build cache, for tiflash only, default false, Optional)
+* @USE_TIFLASH_RUST_CACHE(bool: use rust code cache, for tiflash only, default false, Optional)
 */
 
 properties([
@@ -81,7 +81,7 @@ properties([
                         defaultValue: false
                 ),
                 booleanParam(
-                        name: 'UPDATE_TIFLASH_CACHE',
+                        name: 'USE_TIFLASH_RUST_CACHE',
                         defaultValue: false
                 ),
     ])
@@ -523,6 +523,20 @@ if [ ${OS} == 'darwin' ]; then
     ls -l ./release-darwin/tiflash/
     mv release-darwin ${TARGET}
 else
+    if [[ ${USE_TIFLASH_RUST_CACHE} != false ]]; then
+        mkdir -p ~/.cargo/registry
+        mkdir -p ~/.cargo/git
+        mkdir -p /rust/registry/cache
+        mkdir -p /rust/registry/index 
+        mkdir -p /rust/git/db
+        mkdir -p /rust/git/checkouts
+        
+        rm -rf ~/.cargo/registry/cache && ln -s /rust/registry/cache ~/.cargo/registry/cache
+        rm -rf ~/.cargo/registry/index && ln -s /rust/registry/index ~/.cargo/registry/index 
+        rm -rf ~/.cargo/git/db && ln -s /rust/git/db ~/.cargo/git/db
+        rm -rf ~/.cargo/git/checkouts && ln -s /rust/git/checkouts ~/.cargo/git/checkouts
+    fi
+
     # check if LLVM toolchain is provided
     if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]
     then
@@ -537,27 +551,6 @@ else
 fi
 rm -rf ${TARGET}/build-release || true
 """
-
-if (params.UPDATE_TIFLASH_CACHE) {
-    // override build script if this build is to update tiflash cache
-    buildsh["tics"] = """
-    if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]
-    then
-        NPROC=12 CMAKE_BUILD_TYPE=RELWITHDEBINFO BUILD_BRANCH=${params.TARGET_BRANCH} BUILD_UPDATE_DEBUG_CI_CCACHE=true UPDATE_CCACHE=true release-centos7-llvm/scripts/build-tiflash-ci.sh
-        NPROC=12 CMAKE_BUILD_TYPE=Debug BUILD_BRANCH=${params.TARGET_BRANCH} UPDATE_CCACHE=true release-centos7-llvm/scripts/build-tiflash-ut-coverage.sh
-        mkdir -p ${TARGET}
-        mv release-centos7-llvm/tiflash ${TARGET}/tiflash
-    else
-        NPROC=12 CMAKE_BUILD_TYPE=RELWITHDEBINFO BUILD_BRANCH=${params.TARGET_BRANCH} BUILD_UPDATE_DEBUG_CI_CCACHE=true UPDATE_CCACHE=true release-centos7/build/build-tiflash-ci.sh
-        if [[ -f release-centos7/build/build-tiflash-ut-coverage.sh ]]
-        then
-            NPROC=12 CMAKE_BUILD_TYPE=Debug BUILD_BRANCH=${params.TARGET_BRANCH} UPDATE_CCACHE=true release-centos7/build/build-tiflash-ut-coverage.sh
-        fi
-        mkdir -p ${TARGET}
-        mv release-centos7/tiflash ${TARGET}/tiflash
-    fi
-    """
-}
 
 buildsh["tikv"] = """
 if [ ${RELEASE_TAG}x != ''x ];then
