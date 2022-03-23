@@ -11,7 +11,7 @@
 * @FORCE_REBUILD(bool:if force rebuild binary,default true,Optional)
 * @FAILPOINT(bool:build failpoint binary or not,only for tidb,tikv,pd now ,default false,Optional)
 * @EDITION(enumerate:,community,enterprise,Required)
-* @USE_TIFLASH_RUST_CACHE(string: use rust code cache, for tiflash only, default false, Optional)
+* @USE_TIFLASH_RUST_CACHE(string:use rust code cache, for tiflash only, Optional)
 */
 
 properties([
@@ -81,8 +81,8 @@ properties([
                         defaultValue: false
                 ),
                 string(
+                        defaultValue: '',
                         name: 'USE_TIFLASH_RUST_CACHE',
-                        defaultValue: 'false',
                         trim: true                        
                 ),                
     ])
@@ -524,7 +524,7 @@ if [ ${OS} == 'darwin' ]; then
     ls -l ./release-darwin/tiflash/
     mv release-darwin ${TARGET}
 else
-    if [[ "${params.USE_TIFLASH_RUST_CACHE}" == "true" ]]; then
+    if [ ${params.USE_TIFLASH_RUST_CACHE} == 'true' ]; then
         mkdir -p ~/.cargo/registry
         mkdir -p ~/.cargo/git
         mkdir -p /rust/registry/cache
