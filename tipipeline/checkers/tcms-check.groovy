@@ -20,7 +20,9 @@ tcmsHost = "https://tcms.pingcap.net/"
 
 now = Calendar.getInstance().getTime().getTime()/1000
 timestamp = now.intValue().toString()
-triggerCI = httpRequest url: tcmsHost + "api/v1/dailyci/trigger", httpMode: 'POST'
+withCredentials([string(credentialsId: 'tcms-token', variable: 'TOKEN')]) {
+    triggerCI = httpRequest customHeaders: [[name: 'Authorization', value: "Bearer ${TOKEN}"]], url: tcmsHost + "api/v1/dailyci/trigger", httpMode: 'POST'
+}
 ciResp = readJSON text: triggerCI.content
 id = ciResp["id"].toString()
 ciFinished = false
@@ -33,7 +35,9 @@ while(!ciFinished) {
         echo "daily ci timeout reached, stop waiting task complete and collect result now."
         break
     }
-    statusCI = httpRequest tcmsHost + "api/v1/dailyci/trigger/" + id
+    withCredentials([string(credentialsId: 'tcms-token', variable: 'TOKEN')]) {
+        statusCI = httpRequest customHeaders: [[name: 'Authorization', value: "Bearer ${TOKEN}"]], url: tcmsHost + "api/v1/dailyci/trigger/" + id
+    }
     statusResp = readJSON text: statusCI.content
     ciFinished = statusResp["finished"].toBoolean()
 }
