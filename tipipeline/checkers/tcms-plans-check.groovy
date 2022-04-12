@@ -23,7 +23,9 @@ planExecIDs = []
 def triggerPlan(String planName) {
     planNameEncode = URLEncoder.encode(planName, "UTF-8")
     getPlanIDURL = "${tcmsHost}api/v1/plans/autocomplete?type=GITHUB&query=${planName}&count=1&pretty"
-    getPlanID = httpRequest url: getPlanIDURL, httpMode: 'GET'
+    withCredentials([string(credentialsId: 'tcms-token', variable: 'TOKEN')]) {
+        getPlanID = httpRequest customHeaders: [[name: 'Authorization', value: "Bearer ${TOKEN}"]], url: getPlanIDURL, httpMode: 'GET'
+    }
     planResp = readJSON text: getPlanID.content
     if (!planResp["data"][0]) {
         return
@@ -45,7 +47,9 @@ def triggerPlan(String planName) {
     triggerID = triggerResp["id"].toString()
     sleep(3)
     getPlanExecIDURL = "${tcmsHost}api/v1/plan-executions?trigger_ids=${triggerID}&pretty"
-    getPlanExecID = httpRequest url: getPlanExecIDURL, httpMode: 'GET'
+    withCredentials([string(credentialsId: 'tcms-token', variable: 'TOKEN')]) {
+        getPlanExecID = httpRequest customHeaders: [[name: 'Authorization', value: "Bearer ${TOKEN}"]], url: getPlanExecIDURL, httpMode: 'GET'
+    }
     planExecResp = readJSON text: getPlanExecID.content
     if (!planExecResp["data"][0]) {
         return
@@ -87,7 +91,9 @@ timeout(time: taskConfig.timeout, unit: 'MINUTES') {
             finishedExecIDs = []
             for (execID in currentExecIDs) {
                 getExecStatusURL = "${tcmsHost}api/v1/plan-executions/${execID}"
-                getExecStatus = httpRequest url: getExecStatusURL, httpMode: 'GET'
+                withCredentials([string(credentialsId: 'tcms-token', variable: 'TOKEN')]) {
+                    getExecStatus = httpRequest customHeaders: [[name: 'Authorization', value: "Bearer ${TOKEN}"]], url: getExecStatusURL, httpMode: 'GET'
+                }
                 execStatusResp = readJSON text: getExecStatus.content
                 status = execStatusResp["status"].toString()
                 if (finishedStatus.contains(status)) {
