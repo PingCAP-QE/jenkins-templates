@@ -43,19 +43,16 @@ properties([
                         name: 'DOCKERFILE',
                         trim: true
                 ),
-                
                 string(
                         defaultValue: '',
                         name: 'RELEASE_DOCKER_IMAGES',
                         trim: true
                 ),
-
                 string(
                         defaultValue: '',
                         name: 'COMMIT',
                         trim: true
                 ),
-
                 string(
                         defaultValue: '',
                         name: 'VERSION',
@@ -208,8 +205,8 @@ def release_images() {
     sh "docker rmi ${imagePlaceHolder} || true"
 }
 def paramsReleaseCheck = [
-        String(name: "PRODUCT", value: PRODUCT),
-        String(name: "COMMIT", value: COMMIT),
+        string(name: "PRODUCT", value: PRODUCT),
+        string(name: "COMMIT", value: COMMIT),
         string(name: "TYPE", value: "docker-local"),
         string(name: "ARCH", value: ${OS}-${ARCH}),
         string(name: "VERSION", value:VERSION ),
