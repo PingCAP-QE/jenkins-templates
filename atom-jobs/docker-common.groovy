@@ -165,9 +165,9 @@ def release_images() {
 
         // This is for debugging
         // Debug ENV
-        def sync_dest_image_name = item.replace("pingcap/", "tidbdev/")
+        // def sync_dest_image_name = item.replace("pingcap/", "tidbdev/")
         // Prod ENV
-        // def sync_dest_image_name = item
+        def sync_dest_image_name = item
         // End debugging
 
            docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
