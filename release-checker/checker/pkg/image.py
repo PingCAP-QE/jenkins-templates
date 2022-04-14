@@ -30,7 +30,7 @@ def image_tag(registry: str, component: str, edition: str, version: str, local: 
     if edition == "enterprise":
         component += "-enterprise"
     if local == 'true':
-        return f"{registry}/{component}:{version}"
+        return f"{registry}"
     else:
         if registry is None or len(registry) == 0:
             return f"{user}/{component}:{version}"  # default registry is dockerhub
