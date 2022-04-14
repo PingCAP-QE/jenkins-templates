@@ -8,6 +8,7 @@ from pkg import tiup as TiUp
 from pkg import image as Image
 from pkg import pingcap as Pingcap
 from pkg.types import Components
+import logging
 
 
 @click.group()
@@ -58,7 +59,7 @@ def image(hashfile, version, edition, registry, component, local):
     if (local != 'true'):
         Image.pull_images(registry, version, edition, hashes.keys())
     else:
-        println('local check! not pull image from remote.')
+        logging.info('local check! not pull image from remote.')
     err_count = Image.validates(registry, version, hashes, edition)
 
     exit(err_count)
