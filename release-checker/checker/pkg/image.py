@@ -62,9 +62,6 @@ def validates(registry: str, version: str, hashes: Dict[str, str], edition="comm
     # 3. docker run --entrypoint $binary $image -V || ...
 
     for comp in hashes.keys():
-        logging.info("product:", comp)
-        logging.info("version:", version)
-        logging.info("edition:", edition)
         image = image_tag(registry, comp, edition, version, local)
 
         if comp not in COMP_TO_BINARY.keys():
