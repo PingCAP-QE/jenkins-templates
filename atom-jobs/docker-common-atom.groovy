@@ -70,6 +70,7 @@ if (params.PRODUCT.length() <= 1) {
 
 // download binarys
 binarys = params.INPUT_BINARYS.split(",")
+
 def download() {
     for (item in binarys) {
         sh "curl ${FILE_SERVER_URL}/download/${item} | tar xz"
@@ -79,10 +80,10 @@ def download() {
 // 构建出的镜像名称
 imagePlaceHolder = UUID.randomUUID().toString()
 // 使用非默认脚本构建镜像，构建出的镜像名称需要在下面定义 
-if (PRODUCT == "tics" || PRODUCT == "tiflash" ) {
+if (PRODUCT == "tics" || PRODUCT == "tiflash") {
     if (RELEASE_TAG.length() > 1) {
         imagePlaceHolder = "hub.pingcap.net/tiflash/tiflash-server-centos7"
-    }else {
+    } else {
         imagePlaceHolder = "hub.pingcap.net/tiflash/tiflash-ci-centos7"
     }
 }
@@ -138,7 +139,6 @@ docker build  -t ${imagePlaceHolder} .
 """
 
 
-
 def build_image() {
     // 如果构建脚本被定义了，使用定义的构建脚本
     if (buildImgagesh.containsKey(PRODUCT)) {
@@ -157,7 +157,6 @@ def build_image() {
 }
 
 
-
 def nodeLabel = "delivery"
 def containerLabel = "delivery"
 if (params.ARCH == "arm64") {
@@ -166,63 +165,65 @@ if (params.ARCH == "arm64") {
 }
 
 images = params.RELEASE_DOCKER_IMAGES.split(",")
+
 def release_images() {
     for (item in images) {
-       if (item.startsWith("pingcap/")) {
-           docker.withRegistry("", "dockerhub") {
-               sh """
+        if (item.startsWith("pingcap/")) {
+            docker.withRegistry("", "dockerhub") {
+                sh """
                docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
-           }
-       }
-       if (item.startsWith("hub.pingcap.net/")) {
-           docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
-               sh """
+            }
+        }
+        if (item.startsWith("hub.pingcap.net/")) {
+            docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
+                sh """
                docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
-           }
-       }
-       if (item.startsWith("hub-new.pingcap.net/")) {
-           docker.withRegistry("https://hub-new.pingcap.net", "harbor-new-pingcap") {
-               sh """
+            }
+        }
+        if (item.startsWith("hub-new.pingcap.net/")) {
+            docker.withRegistry("https://hub-new.pingcap.net", "harbor-new-pingcap") {
+                sh """
                docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
-           }
-       }
-       if (item.startsWith("uhub.service.ucloud.cn/")) {
-           docker.withRegistry("https://uhub.service.ucloud.cn", "ucloud-registry") {
-               sh """
+            }
+        }
+        if (item.startsWith("uhub.service.ucloud.cn/")) {
+            docker.withRegistry("https://uhub.service.ucloud.cn", "ucloud-registry") {
+                sh """
                docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
-           }
-       }
+            }
+        }
     }
     // 清理镜像
     sh "docker rmi ${imagePlaceHolder} || true"
 }
-def paramsReleaseCheck = [
-        string(name: "PRODUCT", value: PRODUCT),
-        string(name: "COMMIT", value: COMMIT),
-        string(name: "TYPE", value: "docker-local"),
-        string(name: "ARCH", value: ${OS}-${ARCH}),
-        string(name: "VERSION", value:VERSION ),
-        string(name: "RELEASE_TAG", value: RELEASE_TAG),
-]
-def local_check(){
-    build job: "release-check-atom",
-            wait: true,
-            parameters: paramsReleaseCheck
+
+def local_check() {
+    sh """
+               cat > ${RELEASE_TAG}.json << __EOF__
+{
+  "${PRODUCT}_commit":"${COMMIT}"
+}
+__EOF__
+
+cd release-checker/checker
+python3 main_atom.py image -c ${PRODUCT} --registry local ${RELEASE_TAG}.json ${RELEASE_TAG} ${edition}
+ """
 }
 
 def release() {
     deleteDir()
     download()
     build_image()
-//    DONE:add release_check
+//    TODO:add release_check
+
     local_check()
 //    release_images()
 }
@@ -230,10 +231,10 @@ def release() {
 stage("Build & Release ${PRODUCT} image") {
     node(nodeLabel) {
         if (containerLabel != "") {
-            container(containerLabel){
+            container(containerLabel) {
                 release()
             }
-        }else {
+        } else {
             release()
         }
     }
