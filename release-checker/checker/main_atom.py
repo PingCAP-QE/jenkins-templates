@@ -60,7 +60,7 @@ def image(hashfile, version, edition, registry, component, local):
         Image.pull_images(registry, version, edition, hashes.keys())
     else:
         logging.info('local check! not pull image from remote.')
-    err_count = Image.validates(registry, version, hashes, edition)
+    err_count = Image.validates(registry, version, hashes, edition, local)
 
     exit(err_count)
 

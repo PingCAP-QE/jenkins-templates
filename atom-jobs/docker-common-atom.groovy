@@ -259,7 +259,7 @@ cd qa/release-checker/checker
 }
 __EOF__
 
-python3 main_atom.py image -c ${product} --registry ${item} ${release_tag}.json ${release_tag} ${version} --local true
+python3 main_atom.py image -c ${product} --registry ${item} --local true ${release_tag}.json ${release_tag}  ${version} 
  """
 }
 

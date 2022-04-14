@@ -5,7 +5,6 @@ from .util import shell_cmd
 from .matcher import Matcher
 from .types import Components
 
-
 cleanup_cmds = []  # NOTE: maybe used in cleaning up image
 
 COMP_TO_BINARY = {  # likewise, annoying
@@ -50,7 +49,8 @@ def pull_images(registry: str, version: str, edition: str, components: Iterable[
         cleanup_cmds.append(f"docker image rm {registry}/{user}/{comp}:{version}")
 
 
-def validates(registry: str, version: str, hashes: Dict[str, str], edition="community", user="pingcap") -> int:
+def validates(registry: str, version: str, hashes: Dict[str, str], edition="community", local="false",
+              user="pingcap") -> int:
     err_count = 0
     if version >= "5.2.0":
         COMP_TO_BINARY[Components.lightning] = ["/tidb-lightning", "/br"]
@@ -60,7 +60,8 @@ def validates(registry: str, version: str, hashes: Dict[str, str], edition="comm
     # 3. docker run --entrypoint $binary $image -V || ...
 
     for comp in hashes.keys():
-        image = image_tag(registry, comp, edition, version)
+        if local != 'true':
+            image = image_tag(registry, comp, edition, version)
 
         if comp not in COMP_TO_BINARY.keys():
             logging.warn(f"[{comp}] not supported")
