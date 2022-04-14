@@ -7,6 +7,8 @@
 * @DOCKERFILE(string: url to download dockerfile, Optional)
 * @RELEASE_TAG(string:for release workflow,what tag to release,Optional)
 * @RELEASE_DOCKER_IMAGES(string:image to release seprate by comma, Required)
+* @COMMIT
+* @VERSION
 */
 properties([
         parameters([
@@ -165,13 +167,47 @@ if (params.ARCH == "arm64") {
 }
 
 images = params.RELEASE_DOCKER_IMAGES.split(",")
-
-def release_images() {
+def docker_check(){
     for (item in images) {
         if (item.startsWith("pingcap/")) {
             docker.withRegistry("", "dockerhub") {
                 sh """
                docker tag ${imagePlaceHolder} ${item}
+               """
+                local_check(item)
+            }
+        }
+        if (item.startsWith("hub.pingcap.net/")) {
+            docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
+                sh """
+               docker tag ${imagePlaceHolder} ${item}
+               """
+                local_check(item)
+            }
+        }
+        if (item.startsWith("hub-new.pingcap.net/")) {
+            docker.withRegistry("https://hub-new.pingcap.net", "harbor-new-pingcap") {
+                sh """
+               docker tag ${imagePlaceHolder} ${item}
+               """
+                local_check(item)
+            }
+        }
+        if (item.startsWith("uhub.service.ucloud.cn/")) {
+            docker.withRegistry("https://uhub.service.ucloud.cn", "ucloud-registry") {
+                sh """
+               docker tag ${imagePlaceHolder} ${item}
+               """
+                local_check(item)
+            }
+        }
+    }
+}
+def docker_push() {
+    for (item in images) {
+        if (item.startsWith("pingcap/")) {
+            docker.withRegistry("", "dockerhub") {
+                sh """
                docker push ${item}
                """
             }
@@ -179,7 +215,6 @@ def release_images() {
         if (item.startsWith("hub.pingcap.net/")) {
             docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
                 sh """
-               docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
             }
@@ -187,7 +222,6 @@ def release_images() {
         if (item.startsWith("hub-new.pingcap.net/")) {
             docker.withRegistry("https://hub-new.pingcap.net", "harbor-new-pingcap") {
                 sh """
-               docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
             }
@@ -195,7 +229,6 @@ def release_images() {
         if (item.startsWith("uhub.service.ucloud.cn/")) {
             docker.withRegistry("https://uhub.service.ucloud.cn", "ucloud-registry") {
                 sh """
-               docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
             }
@@ -204,17 +237,29 @@ def release_images() {
     // 清理镜像
     sh "docker rmi ${imagePlaceHolder} || true"
 }
+product=params.PRODUCT
+release_tag=params.RELEASE_TAG
+commit=params.COMMIT
+version=params.VERSION
 
-def local_check() {
+def local_check(item) {
+    dir("qa") {
+        checkout scm: [$class           : 'GitSCM',
+                       branches         : [[name: "feature/cd0411"]],
+                       extensions       : [[$class: 'LocalBranch']],
+                       userRemoteConfigs: [[credentialsId: 'heibaijian', url: 'https://github.com/heibaijian/jenkins-templates.git']]]
+
+    }
     sh """
-               cat > ${RELEASE_TAG}.json << __EOF__
+echo 'into qa/release-checker/checker dir'
+cd qa/release-checker/checker
+               cat > ${release_tag}.json << __EOF__
 {
-  "${PRODUCT}_commit":"${COMMIT}"
+  "${product}_commit":"${commit}"
 }
 __EOF__
 
-cd release-checker/checker
-python3 main_atom.py image -c ${PRODUCT} --registry local ${RELEASE_TAG}.json ${RELEASE_TAG} ${edition}
+python3 main_atom.py image -c ${product} --registry ${item} ${release_tag}.json ${release_tag} ${version} --local true
  """
 }
 
@@ -223,9 +268,8 @@ def release() {
     download()
     build_image()
 //    TODO:add release_check
-
-    local_check()
-//    release_images()
+    docker_check()
+//    docker_push()
 }
 
 stage("Build & Release ${PRODUCT} image") {
