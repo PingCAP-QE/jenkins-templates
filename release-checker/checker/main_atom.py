@@ -47,7 +47,7 @@ component_list = (
 @click.option("--registry", type=str, help="registry to pull image from")
 @click.option("-c", "--component", type=click.Choice(component_list), multiple=True, help="components to check with")
 @click.option("--local", type=str, help="true or false")
-def image(hashfile, version, edition, registry, component):
+def image(hashfile, version, edition, registry, component, local):
     with open(hashfile) as f:
         hashes = util.get_hashes_from_file(f)
 
@@ -58,7 +58,7 @@ def image(hashfile, version, edition, registry, component):
     if (local != 'true'):
         Image.pull_images(registry, version, edition, hashes.keys())
     else:
-        println( 'local check! not pull image from remote.')
+        println('local check! not pull image from remote.')
     err_count = Image.validates(registry, version, hashes, edition)
 
     exit(err_count)
