@@ -26,14 +26,16 @@ BIN_TO_COMP = {
 }
 
 
-def image_tag(registry: str, component: str, edition: str, version: str, user="pingcap") -> str:
+def image_tag(registry: str, component: str, edition: str, version: str, local: str, user="pingcap") -> str:
     if edition == "enterprise":
         component += "-enterprise"
-
-    if registry is None or len(registry) == 0:
-        return f"{user}/{component}:{version}"  # default registry is dockerhub
+    if local == 'true':
+        return f"{component}:{version}"
     else:
-        return f"{registry}/{user}/{component}:{version}"
+        if registry is None or len(registry) == 0:
+            return f"{user}/{component}:{version}"  # default registry is dockerhub
+        else:
+            return f"{registry}/{user}/{component}:{version}"
 
 
 def pull_images(registry: str, version: str, edition: str, components: Iterable[str], user="pingcap"):
@@ -60,8 +62,10 @@ def validates(registry: str, version: str, hashes: Dict[str, str], edition="comm
     # 3. docker run --entrypoint $binary $image -V || ...
 
     for comp in hashes.keys():
-        if local != 'true':
-            image = image_tag(registry, comp, edition, version)
+        logging.info("product:", comp)
+        logging.info("version:", version)
+        logging.info("edition:", edition)
+        image = image_tag(registry, comp, edition, version, local)
 
         if comp not in COMP_TO_BINARY.keys():
             logging.warn(f"[{comp}] not supported")
