@@ -4,7 +4,7 @@ from typing import Tuple
 import click
 
 from pkg import util
-from pkg import tiup_online as TiUp
+from pkg import tiup as TiUp
 from pkg import image as Image
 from pkg import tiup_offline as Pingcap
 from pkg.types import Components
@@ -18,7 +18,7 @@ def cli():
     pass
 
 
-# NOTE: core functions in tiup_online.py, tiup_offline.py and image.py can be abstracted
+# NOTE: core functions in tiup.py, tiup_offline.py and image.py can be abstracted
 # there are duplicated code in function validates(), validates function should be a validator
 
 
@@ -69,7 +69,7 @@ def image(hashfile, version, edition, registry, component, local):
 @click.argument("hashfile", type=str)
 @click.argument("version", type=str)
 @click.option("-c", "--component", type=click.Choice(component_list), multiple=True, help="components to check with")
-def tiup_online(hashfile, version, component: Tuple[str]):
+def tiup(hashfile, version, component: Tuple[str]):
     with open(hashfile) as f:
         hashes = util.get_hashes_from_file(f)
 

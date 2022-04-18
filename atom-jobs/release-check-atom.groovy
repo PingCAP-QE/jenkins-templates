@@ -108,7 +108,7 @@ def check_online_tiup = { products, edition_param, arch_param ->
                 unstash 'qa'
                 dir("qa/release-checker/checker") {
                     products.each {
-                        sh "python3 main_atom.py tiup_online -c $it ${release_tag}.json ${release_tag}"
+                        sh "python3 main_atom.py tiup -c $it ${release_tag}.json ${release_tag}"
                     }
                 }
             }
@@ -125,7 +125,7 @@ def check_online_tiup = { products, edition_param, arch_param ->
                         dir("qa/release-checker/checker") {
                             products.each {
                                 sh """
-                            python3 main_atom.py tiup_online -c $it ${release_tag}.json ${release_tag}
+                            python3 main_atom.py tiup -c $it ${release_tag}.json ${release_tag}
                             """
                             }
                         }
