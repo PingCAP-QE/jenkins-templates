@@ -40,6 +40,8 @@ def product = params.PRODUCT
 def type = params.TYPE
 def arch = params.ARCH
 def edition = params.EDITION
+def release_tag=params.RELEASE_TAG
+def commit=params.COMMIT
 
 def task = "release-check-atom"
 def check_image_registry = { products, edition_param, registry ->
@@ -55,7 +57,7 @@ def check_image_registry = { products, edition_param, registry ->
                 dir("qa/release-checker/checker") {
                     products.each {
                         sh """
-                        python3 main.py image -c $it --registry ${registry} ${RELEASE_TAG}.json ${RELEASE_TAG} ${edition}
+                        python3 main.py image -c $it --registry ${registry} ${release_tag}.json ${release_tag} ${edition}
                      """
                     }
                 }
@@ -71,7 +73,7 @@ def check_offline_tiup = { arch_param, edition_param ->
             deleteDir()
             unstash 'qa'
             dir("qa/release-checker/checker") {
-                sh "python3 main_atom.py tiup_offline --arch ${arch} ${RELEASE_TAG}.json ${RELEASE_TAG} ${edition}"
+                sh "python3 main_atom.py tiup_offline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
             }
         }
     } else {
@@ -85,7 +87,7 @@ def check_offline_tiup = { arch_param, edition_param ->
                 container("main") {
                     unstash 'qa'
                     dir("qa/release-checker/checker") {
-                        sh "python3 main_atom.py pingcap --arch ${arch} ${RELEASE_TAG}.json ${RELEASE_TAG} ${edition}"
+                        sh "python3 main_atom.py pingcap --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
                     }
                 }
             }
@@ -101,7 +103,7 @@ def check_online_tiup = { products, edition_param, arch_param ->
                 unstash 'qa'
                 dir("qa/release-checker/checker") {
                     products.each {
-                        sh "python3 main_atom.py tiup_online -c $it ${RELEASE_TAG}.json ${RELEASE_TAG}"
+                        sh "python3 main_atom.py tiup_online -c $it ${release_tag}.json ${release_tag}"
                     }
                 }
             }
@@ -118,7 +120,7 @@ def check_online_tiup = { products, edition_param, arch_param ->
                         dir("qa/release-checker/checker") {
                             products.each {
                                 sh """
-                            python3 main_atom.py tiup_online -c $it ${RELEASE_TAG}.json ${RELEASE_TAG}
+                            python3 main_atom.py tiup_online -c $it ${release_tag}.json ${release_tag}
                             """
                             }
                         }
@@ -136,13 +138,13 @@ stage("prepare") {
     node('delivery') {
         container('delivery') {
             sh """
-               cat > ${RELEASE_TAG}.json << __EOF__
+               cat > ${release_tag}.json << __EOF__
 {
-  "${PRODUCT}_commit":"${COMMIT}"
+  "${product}_commit":"${commit}"
 }
 __EOF__
                         """
-            stash includes: "${RELEASE_TAG}.json", name: "release.json"
+            stash includes: "${release_tag}.json", name: "release.json"
             dir("qa") {
                 checkout scm: [$class           : 'GitSCM',
                                branches         : [[name: "feature/cd0411"]],
@@ -150,7 +152,7 @@ __EOF__
                                userRemoteConfigs: [[credentialsId: 'heibaijian', url: 'https://github.com/heibaijian/jenkins-templates.git']]]
 
             }
-            sh "cp ${RELEASE_TAG}.json qa/release-checker/checker"
+            sh "cp ${release_tag}.json qa/release-checker/checker"
             stash includes: "qa/**", name: "qa"
         }
     }
