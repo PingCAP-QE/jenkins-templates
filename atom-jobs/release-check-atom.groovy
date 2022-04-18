@@ -57,7 +57,7 @@ def check_image_registry = { products, edition_param, registry ->
                 dir("qa/release-checker/checker") {
                     products.each {
                         sh """
-                        python3 main.py image -c $it --registry ${registry} ${release_tag}.json ${release_tag} ${edition}
+                        python3 main_atom.py image -c $it --registry ${registry} ${release_tag}.json ${release_tag} ${edition} --local false
                      """
                     }
                 }
