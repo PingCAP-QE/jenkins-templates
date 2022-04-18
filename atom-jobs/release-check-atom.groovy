@@ -9,7 +9,7 @@
 properties([
         parameters([
                 choice(
-                        choices: ['linux-arm64', 'linux-amd64','darwin-arm64','darwin-amd64'],
+                        choices: ['linux-arm64', 'linux-amd64', 'darwin-arm64', 'darwin-amd64'],
                         name: 'ARCH'
                 ),
                 choice(
@@ -40,8 +40,8 @@ def product = params.PRODUCT
 def type = params.TYPE
 def arch = params.ARCH
 def edition = params.EDITION
-def release_tag=params.RELEASE_TAG
-def commit=params.COMMIT
+def release_tag = params.RELEASE_TAG
+def commit = params.COMMIT
 
 def task = "release-check-atom"
 def check_image_registry = { products, edition_param, registry ->
@@ -87,7 +87,7 @@ def check_offline_tiup = { arch_param, edition_param ->
                 container("main") {
                     unstash 'qa'
                     dir("qa/release-checker/checker") {
-                        sh "python3 main_atom.py pingcap --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
+                        sh "python3 main_atom.py tiup_offline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
                     }
                 }
             }
@@ -96,10 +96,15 @@ def check_offline_tiup = { arch_param, edition_param ->
 }
 
 def check_online_tiup = { products, edition_param, arch_param ->
+    mapping_arch_label = [
+            'darwin-amd64': 'mac',
+            'darwin-arm64': 'mac',
+            'linux-arm64' : 'arm'
+    ]
     if (edition_param == 'community') {
 //        TODO:darwin-arm64 not verify now
         if (arch_param == "darwin-amd64" || arch_param == "linux-arm64" || arch_param == "darwin-arm64") {
-            node(arch) {
+            node(mapping_arch_label[arch_param]) {
                 unstash 'qa'
                 dir("qa/release-checker/checker") {
                     products.each {
