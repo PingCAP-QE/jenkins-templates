@@ -67,34 +67,6 @@ def check_image_registry = { products, edition_param, registry ->
 }
 
 
-def check_offline_tiup = { arch_param, edition_param ->
-    if (arch_param == "linux-arm64") {
-        node("arm") {
-            deleteDir()
-            unstash 'qa'
-            dir("qa/release-checker/checker") {
-                sh "python3 main_atom.py tiupoffline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
-            }
-        }
-    } else {
-        def imageName = "hub.pingcap.net/jenkins/release-checker:tiflash"
-        def label = task + "-tiflash"
-        podTemplate(name: label, label: label, instanceCap: 5, idleMinutes: 120, containers: [
-                containerTemplate(name: 'main', image: imageName, alwaysPullImage: true,
-                        ttyEnabled: true, command: 'cat'),
-        ]) {
-            node(label) {
-                container("main") {
-                    unstash 'qa'
-                    dir("qa/release-checker/checker") {
-                        sh "python3 main_atom.py tiupoffline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
-                    }
-                }
-            }
-        }
-    }
-}
-
 def check_online_tiup = { products, edition_param, arch_param ->
     mapping_arch_label = [
             'darwin-amd64': 'mac',
@@ -138,8 +110,38 @@ def check_online_tiup = { products, edition_param, arch_param ->
     }
 }
 
+
+
+def check_offline_tiup = { arch_param, edition_param ->
+    if (arch_param == "linux-arm64") {
+        node("arm") {
+            deleteDir()
+            unstash 'qa'
+            dir("qa/release-checker/checker") {
+                sh "python3 main_atom.py tiupoffline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
+            }
+        }
+    } else {
+        def imageName = "hub.pingcap.net/jenkins/release-checker:tiflash"
+        def label = task + "-tiflash"
+        podTemplate(name: label, label: label, instanceCap: 5, idleMinutes: 120, containers: [
+                containerTemplate(name: 'main', image: imageName, alwaysPullImage: true,
+                        ttyEnabled: true, command: 'cat'),
+        ]) {
+            node(label) {
+                container("main") {
+                    unstash 'qa'
+                    dir("qa/release-checker/checker") {
+                        sh "python3 main_atom.py tiupoffline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
+                    }
+                }
+            }
+        }
+    }
+}
+
 //TODO:记得修改分支，目前是测试分支
-stage("prepare") {
+stage("prepare ${product} commit file : ${commit}") {
     node('delivery') {
         container('delivery') {
             sh """
@@ -164,7 +166,7 @@ __EOF__
 }
 
 
-stage("verify") {
+stage("verify ${product} ${arch} ${type} ${edition} ${release_tag}") {
     if (type == 'docker-dockerhub') {
         check_image_registry([product], edition, "registry.hub.docker.com")
     } else if (type == 'docker-ucloud') {
