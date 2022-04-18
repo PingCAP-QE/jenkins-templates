@@ -6,7 +6,7 @@ import click
 from pkg import util
 from pkg import tiup as TiUp
 from pkg import image as Image
-from pkg import tiup_offline as Pingcap
+from pkg import tiupoffline as Pingcap
 from pkg.types import Components
 import logging
 
@@ -18,7 +18,7 @@ def cli():
     pass
 
 
-# NOTE: core functions in tiup.py, tiup_offline.py and image.py can be abstracted
+# NOTE: core functions in tiup.py, tiupoffline.py and image.py can be abstracted
 # there are duplicated code in function validates(), validates function should be a validator
 
 
@@ -69,7 +69,7 @@ def image(hashfile, version, edition, registry, component, local):
 @click.argument("hashfile", type=str)
 @click.argument("version", type=str)
 @click.option("-c", "--component", type=click.Choice(component_list), multiple=True, help="components to check with")
-def tiup(hashfile, version, component: Tuple[str]):
+def tiuponline(hashfile, version, component: Tuple[str]):
     with open(hashfile) as f:
         hashes = util.get_hashes_from_file(f)
 
@@ -86,7 +86,7 @@ def tiup(hashfile, version, component: Tuple[str]):
 @click.argument("version", type=str)
 @click.argument("edition", type=click.Choice(("enterprise", "community")))
 @click.option("--arch", required=True, type=click.Choice(("linux-amd64", "linux-arm64")))
-def tiup_offline(hashfile, version, edition, arch):
+def tiupoffline(hashfile, version, edition, arch):
     with open(hashfile) as f:
         hashes = util.get_hashes_from_file(f)
 

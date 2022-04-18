@@ -73,7 +73,7 @@ def check_offline_tiup = { arch_param, edition_param ->
             deleteDir()
             unstash 'qa'
             dir("qa/release-checker/checker") {
-                sh "python3 main_atom.py tiup_offline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
+                sh "python3 main_atom.py tiupoffline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
             }
         }
     } else {
@@ -87,7 +87,7 @@ def check_offline_tiup = { arch_param, edition_param ->
                 container("main") {
                     unstash 'qa'
                     dir("qa/release-checker/checker") {
-                        sh "python3 main_atom.py tiup_offline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
+                        sh "python3 main_atom.py tiupoffline --arch ${arch} ${release_tag}.json ${release_tag} ${edition}"
                     }
                 }
             }
@@ -108,7 +108,7 @@ def check_online_tiup = { products, edition_param, arch_param ->
                 unstash 'qa'
                 dir("qa/release-checker/checker") {
                     products.each {
-                        sh "python3 main_atom.py tiup -c $it ${release_tag}.json ${release_tag}"
+                        sh "python3 main_atom.py tiuponline -c $it ${release_tag}.json ${release_tag}"
                     }
                 }
             }
@@ -125,7 +125,7 @@ def check_online_tiup = { products, edition_param, arch_param ->
                         dir("qa/release-checker/checker") {
                             products.each {
                                 sh """
-                            python3 main_atom.py tiup -c $it ${release_tag}.json ${release_tag}
+                            python3 main_atom.py tiuponline -c $it ${release_tag}.json ${release_tag}
                             """
                             }
                         }
