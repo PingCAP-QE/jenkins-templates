@@ -40,7 +40,7 @@ def image_tag(registry: str, component: str, edition: str, version: str, local: 
 
 def pull_images(registry: str, version: str, edition: str, components: Iterable[str], user="pingcap"):
     for comp in components:
-        image = image_tag(registry, comp, edition, version)
+        image = image_tag(registry, comp, edition, version, local='false')
         try:
             shell_cmd(f"docker image rm {image}")
         except:
