@@ -201,7 +201,6 @@ def release() {
     deleteDir()
     download()
     build_image()
-//    TODO:add release_check
     release_images()
 }
 

@@ -1,15 +1,9 @@
 /*
-* @TIDB_VERSION
-* @TIKV_VERSION
-* @PD_VERSION
-* @TIFLASH_VERSION
-* @BR_VERSION
-* @BINLOG_VERSION
-* @LIGHTNING_VERSION
-* @IMPORTER_VERSION
-* @TOOLS_VERSION
-* @CDC_VERSION
-* @DUMPLING_VERSION
+* @ARCH
+* @PRODUCT
+* @COMMIT
+* @TYPE
+* @EDITION
 * @RELEASE_TAG
 */
 properties([
@@ -18,21 +12,28 @@ properties([
                         choices: ['arm64', 'amd64'],
                         name: 'ARCH'
                 ),
-                string(
-                        defaultValue: '',
+                choice(
+                        choices: ['tidb', 'tikv', 'pd', 'tiflash', 'br', 'tidb-binlog', 'tidb-lightning', 'ticdc', 'dumpling'],
                         name: 'PRODUCT',
-                        trim: true,
                 ),
                 string(
                         defaultValue: '',
-                        name: 'EDITION',
+                        name: 'COMMIT',
                         trim: true
+                ),
+                choice(
+                        choices: ['docker-dockerhub', 'docker-ucloud', 'tiup-online', 'tiup-offline'],
+                        name: 'TYPE'
+                ),
+                choice(
+                        choices: ['community', 'enterprise'],
+                        name: 'EDITION'
                 ),
                 string(
                         defaultValue: '',
-                        name: 'VERSION',
+                        name: 'RELEASE_TAG',
                         trim: true
-                )
+                ),
         ])
 ])
 def product = params.PRODUCT
@@ -157,13 +158,13 @@ __EOF__
 
 
 stage("verify") {
-     if (type == 'docker-dockerhub') {
+    if (type == 'docker-dockerhub') {
         check_image_registry([product], edition, "registry.hub.docker.com")
     } else if (type == 'docker-ucloud') {
         check_image_registry([product], edition, "uhub.service.ucloud.cn")
     } else {
 //        tiup online
-        if (type == 'tiup online') {
+        if (type == 'tiup-online') {
 //            DONE：1、增加arch参数
             check_online_tiup([product], edition, arch)
         } else {
