@@ -9,7 +9,7 @@
 properties([
         parameters([
                 choice(
-                        choices: ['arm64', 'amd64'],
+                        choices: ['linux-arm64', 'linux-amd64','darwin-arm64','darwin-amd64'],
                         name: 'ARCH'
                 ),
                 choice(
