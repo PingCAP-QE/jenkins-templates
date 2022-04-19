@@ -19,6 +19,7 @@ COMP_MAP = {  # TODO: map component names tie to time is annoying, any better so
     Components.binlog: ["pump", "drainer"],
     Components.ticdc: ["cdc"],
     Components.lightning: ["tidb-lightning"],
+    Components.dm: ["dm"],
 }
 
 
