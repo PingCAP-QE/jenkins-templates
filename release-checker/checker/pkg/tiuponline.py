@@ -52,6 +52,7 @@ def validates(version: str, hashes: Dict[str, str], edition="community") -> int:
         for component in COMP_MAP[comp]:  # it's confusing comp and component here
             comp_cmd = f"{env} {tiup_cmd} {component}:{version}"
             cmd = f"{comp_cmd} -V || {comp_cmd} --version || {comp_cmd} version"
+            logging.info(cmd)
             try:
                 version_string = shell_cmd(cmd)
                 logging.debug(version_string)
