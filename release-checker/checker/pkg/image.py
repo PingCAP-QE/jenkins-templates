@@ -17,6 +17,7 @@ COMP_TO_BINARY = {  # likewise, annoying
     Components.binlog: ["/pump", "/drainer"],
     Components.ticdc: ["/cdc"],
     Components.lightning: ["/tidb-lightning", "/tikv-importer", "/br"],
+    Components.dm: ["/dm-master", "/dm-worker", "/dmctl"],
 }
 
 BIN_TO_COMP = {
