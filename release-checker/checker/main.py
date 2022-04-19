@@ -4,9 +4,9 @@ from typing import Tuple
 import click
 
 from pkg import util
-from pkg import tiup as TiUp
+from pkg import tiuponline as TiUp
 from pkg import image as Image
-from pkg import pingcap as Pingcap
+from pkg import tiupoffline as Pingcap
 from pkg.types import Components
 
 
@@ -16,7 +16,7 @@ def cli():
     """
     pass
 
-# NOTE: core functions in tiup.py, pingcap.py and image.py can be abstracted
+# NOTE: core functions in tiuponline.py, tiupoffline.py and image.py can be abstracted
 # there are duplicated code in function validates(), validates function should be a validator
 
 
