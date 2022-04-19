@@ -13,7 +13,7 @@ properties([
                         name: 'ARCH'
                 ),
                 choice(
-                        choices: ['tidb', 'tikv', 'pd', 'tiflash', 'br', 'tidb-binlog', 'tidb-lightning', 'ticdc', 'dumpling'],
+                        choices: ['tidb', 'tikv', 'pd', 'tiflash', 'br', 'tidb-binlog', 'tidb-lightning', 'ticdc', 'dumpling','dm'],
                         name: 'PRODUCT',
                 ),
                 string(
