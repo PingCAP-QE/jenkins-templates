@@ -75,6 +75,7 @@ def validates(registry: str, version: str, hashes: Dict[str, str], edition="comm
             # NOTE: tikv-importer in lightning image will print short version(without hash) with "-V" flag
             # so use "--version" flag first here
             cmd = f"{docker_cmd} --version || {docker_cmd} -V || {docker_cmd} version"
+            logging.info(cmd)
             try:
                 version_string = shell_cmd(cmd)
                 logging.debug(version_string)
