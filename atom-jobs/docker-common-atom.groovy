@@ -167,31 +167,59 @@ if (params.ARCH == "arm64") {
 }
 
 images = params.RELEASE_DOCKER_IMAGES.split(",")
-product = params.PRODUCT
-release_tag = params.RELEASE_TAG
-commit = params.COMMIT
-
+/**
+ * checklist
+ * hash
+ * release_tag
+ * not check version because of not docker tag
+ */
 def local_check() {
-    dir("qa") {
-        checkout scm: [$class           : 'GitSCM',
-                       branches         : [[name: "feature/cd0411"]],
-                       extensions       : [[$class: 'LocalBranch']],
-                       userRemoteConfigs: [[credentialsId: 'heibaijian', url: 'https://github.com/heibaijian/jenkins-templates.git']]]
-
+    comp_to_binary = [
+            "pd"            : ["/pd-server"],
+            "tikv"          : ["/tikv-server"],
+            "tidb"          : ["/tidb-server"],
+            "tiflash"       : ["/tiflash/tiflash"],
+            "br"            : ["/br"],
+            "dumpling"      : ["/dumpling"],
+            "tidb-binlog"   : ["/pump", "/drainer"],
+            "ticdc"         : ["/cdc"],
+            "tidb-lightning": ["/tidb-lightning", "/tikv-importer", "/br"],
+            "dm"            : ["/dm-master", "/dm-worker", "/dmctl"],
+    ]
+    def product = params.PRODUCT
+    def release_tag_expect = params.RELEASE_TAG
+    def commit_expect = params.COMMIT
+    def entry = comp_to_binary[product]
+    if (entry == null) {
+        println("product:%s not in local check list", product)
+        return
     }
     for (item in images) {
-        sh """
-            echo '${product} lcoal check '
-            cd qa/release-checker/checker
-            cat > ${release_tag}.json << __EOF__
-{
-    "${product}_commit":"${commit}"
-}
-__EOF__
-python3 main_atom.py image -c ${product} --registry ${imagePlaceHolder} --local true ${release_tag}.json ${release_tag}  community
+        if (release_tag_expect >= "5.2.0") {
+            comp_to_binary["tidb-lightning"] = ["/tidb-lightning", "/br"]
+        }
+        for (binary in comp_to_binary[product]) {
+            sh """
+echo ${binary}               
+cd bin/
+.${binary} -V > info.txt
+commit_actual=`cat info.txt | grep 'Git Commit Hash' | awk -F ':' '{print \$2}'`
+commit_actual=`echo \$commit_actual | sed -e 's/^[ \\t]*//g'`
+release_tag_actual=`cat info.txt | grep 'Release Version' | awk -F ':' '{print \$2}'`
+release_tag_actual=`echo \$release_tag_actual | sed -e 's/^[ \\t]*//g'`
+if [ ${commit_expect} == \$commit_actual ] && [ ${release_tag_expect} == \$release_tag_actual ]
+then
+    echo "pass local check! commit and release_tag check successful!"
+else
+    echo "fail local check!"
+    echo "commit_expect:${commit_expect};commit_actual:\$commit_actual" 
+    echo "commit_expect:${release_tag_expect};commit_actual:\$release_tag_actual" 
+    exit 1 
+fi
 """
-    }
+        }
 
+    }
 }
 
 def release_images() {
@@ -238,12 +266,13 @@ def release() {
         deleteDir()
         download()
     }
-    stage("Build") {
-        build_image()
-    }
     stage("local check") {
         local_check()
     }
+    stage("Build") {
+//        build_image()
+    }
+
     stage("tag&push image") {
 //        release_images()
     }
