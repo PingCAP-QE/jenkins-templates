@@ -161,23 +161,33 @@ images = params.RELEASE_DOCKER_IMAGES.split(",")
 def release_images() {
     for (item in images) {
        if (item.startsWith("pingcap/")) {
-           docker.withRegistry("", "dockerhub") {
+        def harbor_tmp_image_name = "hub.pingcap.net/image-sync/" + item
+
+        // This is for debugging
+        // Debug ENV
+        // def sync_dest_image_name = item.replace("pingcap/", "tidbdev/")
+        // Prod ENV
+        def sync_dest_image_name = item
+        // End debugging
+
+           docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
                sh """
-               docker tag ${imagePlaceHolder} ${item}
-               docker push ${item}
+               # Push to Internal Harbor First, then sync to DockerHub 
+               # pingcap/tidb:v5.2.3 will be pushed to hub.pingcap.net/image-sync/pingcap/tidb:v5.2.3
+               docker tag ${imagePlaceHolder} ${harbor_tmp_image_name}
+               docker push ${harbor_tmp_image_name}
                """
            }
+
+        sync_image_params = [
+                string(name: 'triggered_by_upstream_ci', value: "docker-common-nova"),
+                string(name: 'SOURCE_IMAGE', value: harbor_tmp_image_name),
+                string(name: 'TARGET_IMAGE', value: sync_dest_image_name),
+        ]
+        build(job: "jenkins-image-syncer", parameters: sync_image_params, wait: true, propagate: true)
        }
        if (item.startsWith("hub.pingcap.net/")) {
            docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
-               sh """
-               docker tag ${imagePlaceHolder} ${item}
-               docker push ${item}
-               """
-           }
-       }
-       if (item.startsWith("hub-new.pingcap.net/")) {
-           docker.withRegistry("https://hub-new.pingcap.net", "harbor-new-pingcap") {
                sh """
                docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
@@ -210,12 +220,8 @@ stage("Build & Release ${PRODUCT} image") {
             container(containerLabel){
                 release()
             }
-        }else {
+        } else {
             release()
         }
     }
 }
-
-
-
-

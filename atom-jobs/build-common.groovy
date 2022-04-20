@@ -387,6 +387,22 @@ cp bin/* ${TARGET}/bin/
 """
 
 // only support dm version >= 5.3.0 (dm in repo tiflow)
+// start from 6.0.0, dm use webui is supported
+dmUseWebUI = "true"
+if ((params.RELEASE_TAG.startsWith("release-") && params.RELEASE_TAG <"release-6.0") || (params.RELEASE_TAG.startsWith("v") && params.RELEASE_TAG <"v6.0.0")) { 
+    dmUseWebUI = "false"
+}
+dmNodePackage = "node-v16.14.0-linux-x64"
+if (params.OS == "linux" && params.ARCH == "arm64") {
+    dmNodePackage = "node-v16.14.0-linux-arm64"
+} else if (params.OS == "darwin" && params.ARCH == "arm64") {
+    dmNodePackage = "node-v16.14.0-darwin-arm64"
+} else if (params.OS == "darwin" && params.ARCH == "amd64") {
+    dmNodePackage = "node-v16.14.0-darwin-x64"
+} else {
+    dmNodePackage = "node-v16.14.0-linux-x64"
+}
+
 buildsh["dm"] = """
 if [ ${RELEASE_TAG}x != ''x ];then
     for a in \$(git tag --contains ${GIT_HASH}); do echo \$a && git tag -d \$a;done
@@ -397,8 +413,19 @@ fi;
 if [[ ${ARCH} == 'arm64' ||  ${OS} == 'darwin' ]]; then
     export PATH=${binPath}
 fi;
+
 go version
-make dm
+if [ ${dmUseWebUI} == "true" ]; then
+    wget http://fileserver.pingcap.net/download/ee-tools/${dmNodePackage}.tar.gz
+    tar -xvf ${dmNodePackage}.tar.gz
+    export PATH=\$(pwd)/${dmNodePackage}/bin:\$PATH
+    node -v
+    npm install -g yarn
+    make dm-master-with-webui dm-worker dmctl dm-syncer
+else
+    make dm
+fi;
+
 ls -alh bin/
 rm -rf ${TARGET}
 mkdir -p ${TARGET}/bin
@@ -409,8 +436,32 @@ mv dm/dm/master/task_advanced.yaml ${TARGET}/conf/
 mv dm/dm/master/dm-master.toml ${TARGET}/conf/
 mv dm/dm/worker/dm-worker.toml ${TARGET}/conf/
 mv LICENSE ${TARGET}/
-curl http://download.pingcap.org/mydumper-latest-linux-amd64.tar.gz | tar xz
-mv mydumper-latest-linux-amd64/bin/mydumper ${TARGET}/bin/ && rm -rf mydumper-latest-linux-amd64
+
+# start from v6.0.0(include v6.0.0), dm-ansible is removed, link https://github.com/pingcap/tiflow/pull/4917
+if [[ -d "dm/dm/dm-ansible" ]]; then
+    mkdir -p ${TARGET}/dm-ansible
+    cp -r dm/dm/dm-ansible/* ${TARGET}/dm-ansible/
+fi;
+# start from v6.0.0(include v6.0.0), pingcap/dm-monitor-initializer is replace by pingcap/monitoring
+# link https://github.com/pingcap/monitoring/pull/188.
+if [[ -d "dm/dm/dm-ansible" ]]; then
+    # mkdir -p ${TARGET}/monitoring/dashboards
+    # mkdir -p ${TARGET}/monitoring/rules
+    cd dm
+    cp -f dm/dm-ansible/scripts/DM-Monitor-Professional.json monitoring/dashboards/
+    cp -f dm/dm-ansible/scripts/DM-Monitor-Standard.json monitoring/dashboards/
+    cp -f dm/dm-ansible/scripts/dm_instances.json monitoring/dashboards/
+    mkdir -p monitoring/rules
+    cp -f dm/dm-ansible/conf/dm_worker.rules.yml monitoring/rules/
+    cd monitoring && go run dashboards/dashboard.go && cd ..
+    cd ..
+    mv dm/monitoring ${TARGET}/
+fi;
+
+if [[ ${ARCH} == "amd64" ]]; then
+    curl http://download.pingcap.org/mydumper-latest-linux-amd64.tar.gz | tar xz
+    mv mydumper-latest-linux-amd64/bin/mydumper ${TARGET}/bin/ && rm -rf mydumper-latest-linux-amd64
+fi;
 """
 
 buildsh["br"] = """
