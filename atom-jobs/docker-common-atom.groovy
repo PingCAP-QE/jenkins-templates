@@ -167,47 +167,39 @@ if (params.ARCH == "arm64") {
 }
 
 images = params.RELEASE_DOCKER_IMAGES.split(",")
-def docker_check(){
-    for (item in images) {
-        if (item.startsWith("pingcap/")) {
-            docker.withRegistry("", "dockerhub") {
-                sh """
-               docker tag ${imagePlaceHolder} ${item}
-               """
-                local_check(item)
-            }
-        }
-        if (item.startsWith("hub.pingcap.net/")) {
-            docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
-                sh """
-               docker tag ${imagePlaceHolder} ${item}
-               """
-                local_check(item)
-            }
-        }
-        if (item.startsWith("hub-new.pingcap.net/")) {
-            docker.withRegistry("https://hub-new.pingcap.net", "harbor-new-pingcap") {
-                sh """
-               docker tag ${imagePlaceHolder} ${item}
-               """
-                local_check(item)
-            }
-        }
-        if (item.startsWith("uhub.service.ucloud.cn/")) {
-            docker.withRegistry("https://uhub.service.ucloud.cn", "ucloud-registry") {
-                sh """
-               docker tag ${imagePlaceHolder} ${item}
-               """
-                local_check(item)
-            }
-        }
+product = params.PRODUCT
+release_tag = params.RELEASE_TAG
+commit = params.COMMIT
+
+def local_check() {
+    dir("qa") {
+        checkout scm: [$class           : 'GitSCM',
+                       branches         : [[name: "feature/cd0411"]],
+                       extensions       : [[$class: 'LocalBranch']],
+                       userRemoteConfigs: [[credentialsId: 'heibaijian', url: 'https://github.com/heibaijian/jenkins-templates.git']]]
+
     }
+    for (item in images) {
+        sh """
+            echo '${product} lcoal check '
+            cd qa/release-checker/checker
+            cat > ${release_tag}.json << __EOF__
+{
+    "${product}_commit":"${commit}"
 }
-def docker_push() {
+__EOF__
+python3 main_atom.py image -c ${product} --registry ${imagePlaceHolder} --local true ${release_tag}.json ${release_tag}  community
+"""
+    }
+
+}
+
+def release_images() {
     for (item in images) {
         if (item.startsWith("pingcap/")) {
             docker.withRegistry("", "dockerhub") {
                 sh """
+               docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
             }
@@ -215,6 +207,7 @@ def docker_push() {
         if (item.startsWith("hub.pingcap.net/")) {
             docker.withRegistry("https://hub.pingcap.net", "harbor-pingcap") {
                 sh """
+               docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
             }
@@ -222,6 +215,7 @@ def docker_push() {
         if (item.startsWith("hub-new.pingcap.net/")) {
             docker.withRegistry("https://hub-new.pingcap.net", "harbor-new-pingcap") {
                 sh """
+               docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
             }
@@ -229,6 +223,7 @@ def docker_push() {
         if (item.startsWith("uhub.service.ucloud.cn/")) {
             docker.withRegistry("https://uhub.service.ucloud.cn", "ucloud-registry") {
                 sh """
+               docker tag ${imagePlaceHolder} ${item}
                docker push ${item}
                """
             }
@@ -237,53 +232,31 @@ def docker_push() {
     // 清理镜像
     sh "docker rmi ${imagePlaceHolder} || true"
 }
-product=params.PRODUCT
-release_tag=params.RELEASE_TAG
-commit=params.COMMIT
-version=params.VERSION
-
-def local_check(item) {
-    dir("qa") {
-        checkout scm: [$class           : 'GitSCM',
-                       branches         : [[name: "feature/cd0411"]],
-                       extensions       : [[$class: 'LocalBranch']],
-                       userRemoteConfigs: [[credentialsId: 'heibaijian', url: 'https://github.com/heibaijian/jenkins-templates.git']]]
-
-    }
-    sh """
-echo 'into qa/release-checker/checker dir'
-cd qa/release-checker/checker
-               cat > ${release_tag}.json << __EOF__
-{
-  "${product}_commit":"${commit}"
-}
-__EOF__
-
-python3 main_atom.py image -c ${product} --registry ${item} --local true ${release_tag}.json ${release_tag}  ${version} 
- """
-}
 
 def release() {
-    deleteDir()
-    download()
-    build_image()
-//    TODO:add release_check
-    docker_check()
-//    docker_push()
-}
-
-stage("Build & Release ${PRODUCT} image") {
-    node(nodeLabel) {
-        if (containerLabel != "") {
-            container(containerLabel) {
-                release()
-            }
-        } else {
-            release()
-        }
+    stage("Download") {
+        deleteDir()
+        download()
+    }
+    stage("Build") {
+        build_image()
+    }
+    stage("local check") {
+        local_check()
+    }
+    stage("tag&push image") {
+//        release_images()
     }
 }
 
-
+node(nodeLabel) {
+    if (containerLabel != "") {
+        container(containerLabel) {
+            release()
+        }
+    } else {
+        release()
+    }
+}
 
 

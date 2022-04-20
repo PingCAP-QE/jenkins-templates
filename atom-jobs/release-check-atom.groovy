@@ -70,11 +70,12 @@ def check_image_registry = { products, edition_param, registry ->
 def check_online_tiup = { products, edition_param, arch_param ->
     mapping_arch_label = [
             'darwin-amd64': 'mac',
+            'darwin-arm64': 'mac-arm',
             'linux-arm64' : 'arm'
     ]
     if (edition_param == 'community') {
 //        TODO:darwin-arm64 not verify now
-        if (arch_param == "darwin-amd64" || arch_param == "linux-arm64") {
+        if (arch_param == "darwin-amd64" || arch_param == "linux-arm64" || arch_param == "darwin-arm64") {
             node(mapping_arch_label[arch_param]) {
                 unstash 'qa'
                 dir("qa/release-checker/checker") {
