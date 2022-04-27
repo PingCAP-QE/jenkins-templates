@@ -198,7 +198,7 @@ def local_check() {
     def release_tag_expect = params.RELEASE_TAG.replaceAll('v', '')
     def entry = comp_to_binary[product]
     if (entry == null) {
-        println("product:%s not in local check list", product)
+        println "product:${product} not in local check list"
     } else {
         def commit_expect = get_sha(repo_list[params.REPO], params.GIT_BRANCH)
         for (item in images) {
