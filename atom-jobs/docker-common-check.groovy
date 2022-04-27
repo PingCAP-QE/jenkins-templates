@@ -182,7 +182,7 @@ def local_check() {
             "tidb-lightning": ["/tidb-lightning", "/tikv-importer", "/br"],
             "dm"            : ["/dm-master", "/dm-worker", "/dmctl"],
     ]
-    repo_list=[
+    repo_list = [
             "pd"            : "pd",
             "tikv"          : "tikv",
             "tidb"          : "tidb",
@@ -198,15 +198,15 @@ def local_check() {
     def entry = comp_to_binary[product]
     if (entry == null) {
         println("product:%s not in local check list", product)
-        return
-    }
-    def commit_expect = get_sha(repo_list[params.REPO], params.GIT_BRANCH)
-    for (item in images) {
-        if (release_tag_expect >= "5.2.0") {
-            comp_to_binary["tidb-lightning"] = ["/tidb-lightning", "/br"]
-        }
-        for (binary in comp_to_binary[product]) {
-            sh """
+
+    } else {
+        def commit_expect = get_sha(repo_list[params.REPO], params.GIT_BRANCH)
+        for (item in images) {
+            if (release_tag_expect >= "5.2.0") {
+                comp_to_binary["tidb-lightning"] = ["/tidb-lightning", "/br"]
+            }
+            for (binary in comp_to_binary[product]) {
+                sh """
 echo ${binary}               
 cd bin/
 if [ ${product} == 'ticdc' ]
@@ -229,8 +229,9 @@ else
     exit 1 
 fi
 """
-        }
+            }
 
+        }
     }
 }
 
