@@ -120,7 +120,7 @@ def parseBuildInfo(repo) {
         actualRepo = "tiflow"
     }
     // Notice: dm has been merged to tiflow from release-5.3.0, so we need to use tiflow as actual repo
-    if (repo == "dm") {
+    if (repo == "dm" && GIT_BRANCH.startsWith("release-") && GIT_BRANCH >= "release-5.3") {
         actualRepo = "tiflow"
     }
     // if (repo == "tiflash") {
@@ -579,6 +579,9 @@ node("${GO_BUILD_SLAVE}") {
             }
         }
         releaseReposMultiArch = ["tidb","tikv","pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog", "dm"]
+        if(GIT_BRANCH < "release-5.3"){
+            releaseReposMultiArch = ["tidb","tikv","pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog"]
+        }
         for (item in releaseReposMultiArch) {
             def String product = "${item}"
             def String stageName = "${product}-multi-arch"
