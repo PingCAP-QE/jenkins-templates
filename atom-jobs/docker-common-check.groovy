@@ -182,7 +182,8 @@ def local_check() {
             "tidb-lightning": ["/tidb-lightning", "/tikv-importer", "/br"],
             "dm"            : ["/dm-master", "/dm-worker", "/dmctl"],
     ]
-    repo_list = [
+
+    repo_list=[
             "pd"            : "pd",
             "tikv"          : "tikv",
             "tidb"          : "tidb",
@@ -198,7 +199,6 @@ def local_check() {
     def entry = comp_to_binary[product]
     if (entry == null) {
         println("product:%s not in local check list", product)
-
     } else {
         def commit_expect = get_sha(repo_list[params.REPO], params.GIT_BRANCH)
         for (item in images) {
