@@ -175,7 +175,6 @@ def local_check() {
             "pd"            : ["/pd-server"],
             "tikv"          : ["/tikv-server"],
             "tidb"          : ["/tidb-server"],
-            "tiflash"       : ["/tiflash/tiflash"],
             "br"            : ["/br"],
             "dumpling"      : ["/dumpling"],
             "tidb-binlog"   : ["/pump", "/drainer"],
@@ -183,8 +182,19 @@ def local_check() {
             "tidb-lightning": ["/tidb-lightning", "/tikv-importer", "/br"],
             "dm"            : ["/dm-master", "/dm-worker", "/dmctl"],
     ]
+    repo_list=[
+            "pd"            : "pd",
+            "tikv"          : "tikv",
+            "tidb"          : "tidb",
+            "br"            : "tidb",
+            "dumpling"      : "dumpling",
+            "tidb-binlog"   : "tidb-binlog",
+            "ticdc"         : "ticdc",
+            "tidb-lightning": "tidb",
+            "dm"            : "dm",
+    ]
     def product = params.PRODUCT
-    def release_tag_expect = params.RELEASE_TAG
+    def release_tag_expect = params.RELEASE_TAG.replaceAll('v', '')
     def entry = comp_to_binary[product]
     if (entry == null) {
         println("product:%s not in local check list", product)
@@ -199,18 +209,23 @@ def local_check() {
             sh """
 echo ${binary}               
 cd bin/
-.${binary} -V > info.txt
-commit_actual=`cat info.txt | grep 'Git Commit Hash' | awk -F ':' '{print \$2}'`
-commit_actual=`echo \$commit_actual | sed -e 's/^[ \\t]*//g'`
-release_tag_actual=`cat info.txt | grep 'Release Version' | awk -F ':' '{print \$2}'`
-release_tag_actual=`echo \$release_tag_actual | sed -e 's/^[ \\t]*//g'`
-if [ ${commit_expect} == \$commit_actual ] && [ ${release_tag_expect} == \$release_tag_actual ]
+if [ ${product} == 'ticdc' ]
+then 
+    .${binary} version 2>&1 | tee info.txt
+else
+    .${binary} -V 2>&1 | tee info.txt
+fi 
+
+commit_actual=`cat info.txt | grep -e 'Git Commit Hash' -e 'Git commit hash'| awk -F ':' '{print \$2}'`
+release_tag_actual=`cat info.txt | grep -e 'Release Version' -e 'Release version' | awk -F ':' '{print \$2}'`
+release_tag_actual_exclude_v=\${release_tag_actual/v/}
+if [ ${commit_expect} == \$commit_actual ] && [ ${release_tag_expect} == \$release_tag_actual_exclude_v ]
 then
     echo "pass local check! commit and release_tag check successful!"
 else
     echo "fail local check!"
     echo "commit_expect:${commit_expect};commit_actual:\$commit_actual" 
-    echo "commit_expect:${release_tag_expect};commit_actual:\$release_tag_actual" 
+    echo "release_tag_expect:${release_tag_expect};release_tag_actual:\$release_tag_actual_exclude_v" 
     exit 1 
 fi
 """
