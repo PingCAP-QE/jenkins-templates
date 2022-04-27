@@ -281,8 +281,11 @@ def release() {
         deleteDir()
         download()
     }
-    stage("local check") {
-        local_check()
+//    只校验 release 分支
+    if (params.GIT_BRANCH.startsWith("release-")) {
+        stage("local check") {
+            local_check()
+        }
     }
 //    stage("Build") {
 //        build_image()
