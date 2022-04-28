@@ -215,7 +215,7 @@ else
     echo "fail local check!"
     echo "commit_expect:${commit_expect};commit_actual:\$commit_actual" 
     echo "release_tag_expect:${release_tag_expect};release_tag_actual:\$release_tag_actual_exclude_v" 
-    exit 1 
+    #exit 1 
 fi
 cd ../
 """
@@ -299,14 +299,16 @@ def release() {
     }catch(Exception e){
         currentBuild.result='FAILURE'
         print ${e}
-    }
-    stage("Build") {
-        build_image()
+    }finally{
+        stage("Build") {
+            build_image()
+        }
+
+        stage("Push image") {
+            release_images()
+        }
     }
 
-    stage("Push image") {
-        release_images()
-    }
 
 }
 
