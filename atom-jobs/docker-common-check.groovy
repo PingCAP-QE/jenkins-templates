@@ -301,10 +301,15 @@ def release() {
         download()
     }
 //    只校验 release 分支
-    if (params.RELEASE_TAG.contains("nightly") || params.RELEASE_TAG.contains("alpha")) {
-        stage("local check") {
-            local_check()
+    try {
+        if (params.RELEASE_TAG.contains("nightly") || params.RELEASE_TAG.contains("alpha")) {
+            stage("local check") {
+                local_check()
+            }
         }
+    }catch(Exception e){
+        currentBuild.result='FAILURE'
+        print ${e}
     }
     stage("Build") {
         build_image()
