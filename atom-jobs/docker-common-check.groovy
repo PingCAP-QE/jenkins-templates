@@ -310,6 +310,7 @@ def release() {
     stage("Push image") {
         release_images()
     }
+
 }
 
 node(nodeLabel) {
