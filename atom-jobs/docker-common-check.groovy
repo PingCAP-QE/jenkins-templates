@@ -195,6 +195,9 @@ def local_check() {
     def product = params.PRODUCT
     def release_tag_expect = params.RELEASE_TAG.replaceAll('v', '')
     def entry = comp_to_binary[product]
+    if (product == 'dm' && params.RELEASE_TAG < "v5.3.0") {
+        entry = null
+    }
     if (entry == null) {
         println "product:${product} not in local check list"
     } else {
