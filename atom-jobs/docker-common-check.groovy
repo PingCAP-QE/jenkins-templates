@@ -228,6 +228,7 @@ else
     echo "release_tag_expect:${release_tag_expect};release_tag_actual:\$release_tag_actual_exclude_v" 
     exit 1 
 fi
+cd ../
 """
             }
 
@@ -303,10 +304,10 @@ def release() {
             local_check()
         }
     }
-//    stage("Build") {
-//        build_image()
-//    }
-//
+    stage("Build") {
+        build_image()
+    }
+
 //    stage("Push image") {
 //        release_images()
 //    }
