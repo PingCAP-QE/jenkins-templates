@@ -181,17 +181,6 @@ def local_check() {
             "dm"            : ["/dm-master", "/dm-worker", "/dmctl"],
     ]
 
-    repo_list = [
-            "pd"            : "pd",
-            "tikv"          : "tikv",
-            "tidb"          : "tidb",
-            "br"            : "tidb",
-            "dumpling"      : "dumpling",
-            "tidb-binlog"   : "tidb-binlog",
-            "ticdc"         : "ticdc",
-            "tidb-lightning": "tidb",
-            "dm"            : "dm",
-    ]
     def product = params.PRODUCT
     def release_tag_expect = params.RELEASE_TAG.replaceAll('v', '')
     def entry = comp_to_binary[product]
@@ -201,7 +190,7 @@ def local_check() {
     if (entry == null) {
         println "product:${product} not in local check list"
     } else {
-        def commit_expect = get_sha(repo_list[params.REPO], params.GIT_BRANCH)
+        def commit_expect = get_sha(params.REPO, params.GIT_BRANCH)
         if (release_tag_expect >= "5.2.0") {
             comp_to_binary["tidb-lightning"] = ["/tidb-lightning", "/br"]
         }
