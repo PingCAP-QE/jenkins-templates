@@ -298,7 +298,7 @@ def release() {
         download()
     }
 //    只校验 release 分支
-    if (params.GIT_BRANCH.startsWith("release-")) {
+    if (params.RELEASE_TAG.contains("nightly") || params.RELEASE_TAG.contains("alpha")) {
         stage("local check") {
             local_check()
         }
