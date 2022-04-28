@@ -162,8 +162,6 @@ if (params.ARCH == "arm64") {
     containerLabel = ""
 }
 
-images = params.RELEASE_DOCKER_IMAGES.split(",")
-
 /**
  * checklist
  * hash
@@ -183,7 +181,7 @@ def local_check() {
             "dm"            : ["/dm-master", "/dm-worker", "/dmctl"],
     ]
 
-    repo_list=[
+    repo_list = [
             "pd"            : "pd",
             "tikv"          : "tikv",
             "tidb"          : "tidb",
@@ -201,12 +199,11 @@ def local_check() {
         println "product:${product} not in local check list"
     } else {
         def commit_expect = get_sha(repo_list[params.REPO], params.GIT_BRANCH)
-        for (item in images) {
-            if (release_tag_expect >= "5.2.0") {
-                comp_to_binary["tidb-lightning"] = ["/tidb-lightning", "/br"]
-            }
-            for (binary in comp_to_binary[product]) {
-                sh """
+        if (release_tag_expect >= "5.2.0") {
+            comp_to_binary["tidb-lightning"] = ["/tidb-lightning", "/br"]
+        }
+        for (binary in comp_to_binary[product]) {
+            sh """
 echo ${binary}               
 cd bin/
 if [ ${product} == 'ticdc' ]
@@ -230,9 +227,9 @@ else
 fi
 cd ../
 """
-            }
-
         }
+
+
     }
 }
 
@@ -240,6 +237,8 @@ def get_sha(repo, branch) {
     sh "curl -s ${FILE_SERVER_URL}/download/builds/pingcap/ee/get_hash_from_github.py > gethash.py"
     return sh(returnStdout: true, script: "python gethash.py -repo=${repo} -version=${branch} -s=${FILE_SERVER_URL}").trim()
 }
+
+images = params.RELEASE_DOCKER_IMAGES.split(",")
 
 def release_images() {
     for (item in images) {
@@ -308,19 +307,17 @@ def release() {
         build_image()
     }
 
-//    stage("Push image") {
-//        release_images()
-//    }
+    stage("Push image") {
+        release_images()
+    }
 }
 
-stage("Build & Release ${PRODUCT} image") {
-    node(nodeLabel) {
-        if (containerLabel != "") {
-            container(containerLabel) {
-                release()
-            }
-        } else {
+node(nodeLabel) {
+    if (containerLabel != "") {
+        container(containerLabel) {
             release()
         }
+    } else {
+        release()
     }
 }
