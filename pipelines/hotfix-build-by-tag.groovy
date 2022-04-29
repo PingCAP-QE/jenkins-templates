@@ -112,6 +112,11 @@ HOTFIX_BUILD_RESULT["repo"] = REPO
 buildMap = [:]
 
 
+def get_sha() {
+    sh "curl -s ${FILE_SERVER_URL}/download/builds/pingcap/ee/get_hash_from_github.py > gethash.py"
+    return sh(returnStdout: true, script: "python gethash.py -repo=${REPO} -version=${HOTFIX_TAG}").trim()
+}
+
 def debugEnv() {
     stage("debug env") {
         echo("env")
@@ -279,6 +284,7 @@ def checkOutCode(repo, tag) {
     }
 }
 
+
 def buildTiupPatch(originalFile, packageName, patchFile, arch) {
     if (packageName in ["tikv", "tidb", "pd", "ticdc"]) {
         HOTFIX_BUILD_RESULT["results"][packageName]["tiup-patch-amd64"] = patchFile
@@ -435,13 +441,23 @@ def notifyToFeishu(buildResultFile) {
 run_with_pod {
     container("golang") {
         stage("hotfix-${REPO}") {
+            // TODO enable valid hotfix tag
             // if (!validHotfixTag(HOTFIX_TAG)) {
             //     println "invalid hotfix tag ${HOTFIX_TAG}"
             //     throw new Exception("invalid hotfix tag ${HOTFIX_TAG}")
             // }
             def ws = pwd()
             dir("${REPO}") {
-                checkOutCode(REPO, HOTFIX_TAG)
+                // checkOutCode(REPO, HOTFIX_TAG)
+                GIT_HASH = get_sha()
+                if (GIT_HASH.length() == 40) {
+                    println "valid commit hash: ${GIT_HASH}"
+                } else {
+                    println "invalid commit hash: ${GIT_HASH}"
+                    currentBuild.result = "FAILURE"
+                    throw new Exception("invalid commit hash: ${GIT_HASH}, Throw to stop pipeline")
+                }
+                println "checkout code ${REPO} ${HOTFIX_TAG} ${GIT_HASH}"
                 buildByTag(REPO, HOTFIX_TAG, PRODUCT)
 
                 notifyToFeishu(HOTFIX_BUILD_RESULT_FILE)
