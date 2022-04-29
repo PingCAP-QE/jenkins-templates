@@ -69,7 +69,9 @@ buildPathMap = [
     "tidb": 'go/src/github.com/pingcap/tidb',
     "tiflow": 'go/src/github.com/pingcap/tiflow',
     "pd": 'go/src/github.com/tikv/pd',
-    "tikv": 'tikv',
+    "tikv": 'go/src/github.com/tikv/tikv',
+    "tiflash": 'src/github.com/pingcap/tiflash',
+    "tics": 'src/github.com/pingcap/tics',
 
 ]
 
@@ -78,6 +80,8 @@ repoUrlMap = [
     "tiflow": "git@github.com:pingcap/tiflow.git",
     "pd": "git@github.com:tikv/pd.git",
     "tikv": "git@github.com:tikv/tikv.git",
+    "tiflash": "git@github.com:pingcap/tiflash.git",
+    "tics": "git@github.com:pingcap/tiflash.git",
 ]
 
 tiupPatchBinaryMap = [
@@ -86,6 +90,8 @@ tiupPatchBinaryMap = [
     "ticdc": "cdc",
     "dm": "dm-master,dm-worker,dmctl",
     "pd": "pd-server",
+    "tiflash": "",
+    "tics": "",
 ]
 
 
@@ -218,7 +224,7 @@ def checkOutCode(repo, tag) {
         def refspec = "+refs/tags/${tag}:refs/tags/${tag}"
         def repoUrl = repoUrlMap[repo]
         dir(buildPath){
-            def repoDailyCache = "/nfs/cache/git/src-${REPO}.tar.gz"
+            def repoDailyCache = "/home/jenkins/agent/ci-cached-code-daily/src-${REPO}.tar.gz"
             if (fileExists(repoDailyCache)) {
                 println "get code from nfs to reduce clone time"
                 sh """
@@ -429,10 +435,10 @@ def notifyToFeishu(buildResultFile) {
 run_with_pod {
     container("golang") {
         stage("hotfix-${REPO}") {
-            if (!validHotfixTag(HOTFIX_TAG)) {
-                println "invalid hotfix tag ${HOTFIX_TAG}"
-                throw new Exception("invalid hotfix tag ${HOTFIX_TAG}")
-            }
+            // if (!validHotfixTag(HOTFIX_TAG)) {
+            //     println "invalid hotfix tag ${HOTFIX_TAG}"
+            //     throw new Exception("invalid hotfix tag ${HOTFIX_TAG}")
+            // }
             def ws = pwd()
             dir("${REPO}") {
                 checkOutCode(REPO, HOTFIX_TAG)
