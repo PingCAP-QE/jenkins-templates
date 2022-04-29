@@ -424,7 +424,7 @@ run_with_pod {
         stage("hotfix-${REPO}") {
             if (!validHotfixTag(HOTFIX_TAG)) {
                 println "invalid hotfix tag ${HOTFIX_TAG}"
-                exit 1
+                throw new Exception("invalid hotfix tag ${HOTFIX_TAG}")
             }
             def ws = pwd()
             dir("${REPO}") {
