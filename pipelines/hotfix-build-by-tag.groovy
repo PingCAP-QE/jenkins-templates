@@ -421,7 +421,7 @@ def buildByTag(repo, tag, packageName) {
     writeJSON file: "${HOTFIX_BUILD_RESULT_FILE}", json: json, pretty: 4
     archiveArtifacts artifacts: "${HOTFIX_BUILD_RESULT_FILE}", fingerprint: true
 
-    currentBuild.description = "hotfix build ${repo} ${tag}"
+    currentBuild.description = "hotfix build ${repo} ${tag} ${GIT_HASH}"
     // currentBuild.description += "\n"
 }
 
