@@ -272,7 +272,6 @@ def buildTiupPatch(originalFile, packageName, patchFile, arch) {
         println "build tiup patch for ${packageName}"
         run_with_lightweight_pod {
             container("golang") {
-                deleteDir()
                 def patchBinary = tiupPatchBinaryMap[packageName]
                 println "build ${packageName} tiup patch: ${patchBinary} ${patchFile}"
 
