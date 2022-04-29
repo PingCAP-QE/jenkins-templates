@@ -302,7 +302,7 @@ def buildOne(repo, product, hash, arch, binary, tag) {
         string(name: "OS", value: "linux"),
         string(name: "EDITION", value: EDITION),
         string(name: "OUTPUT_BINARY", value: binary),
-        string(name: "REPO", value: repo),`
+        string(name: "REPO", value: repo),
         string(name: "PRODUCT", value: product),
         string(name: "GIT_HASH", value: hash),
         string(name: "RELEASE_TAG", value: tag),
