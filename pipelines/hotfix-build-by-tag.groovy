@@ -293,16 +293,20 @@ def buildTiupPatch(originalFile, packageName, patchFile, arch) {
 def buildOne(repo, product, hash, arch, binary, tag) {
     println "build binary ${repo} ${product} ${hash} ${arch}"
     println "binary: ${binary}"
+    needSourceCode = false
+    if (product in ["tidb", "tikv", "pd"]) {
+        needSourceCode = true
+    }
     def paramsBuild = [
         string(name: "ARCH", value: arch),
         string(name: "OS", value: "linux"),
         string(name: "EDITION", value: EDITION),
         string(name: "OUTPUT_BINARY", value: binary),
-        string(name: "REPO", value: repo),
+        string(name: "REPO", value: repo),`
         string(name: "PRODUCT", value: product),
         string(name: "GIT_HASH", value: hash),
         string(name: "RELEASE_TAG", value: tag),
-        [$class: 'BooleanParameterValue', name: 'NEED_SOURCE_CODE', value: true],
+        [$class: 'BooleanParameterValue', name: 'NEED_SOURCE_CODE', value: needSourceCode],
         [$class: 'BooleanParameterValue', name: 'FORCE_REBUILD', value: FORCE_REBUILD],
     ]
     build job: "build-common",
@@ -422,7 +426,7 @@ run_with_pod {
             def ws = pwd()
             dir("${REPO}") {
                 checkOutCode(REPO, HOTFIX_TAG)
-                buildBinaryByTag(REPO, HOTFIX_TAG)
+                buildByTag(REPO, HOTFIX_TAG, PRODUCT)
 
                 notifyToFeishu(HOTFIX_BUILD_RESULT_FILE)
             }
