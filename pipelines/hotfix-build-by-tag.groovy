@@ -26,19 +26,41 @@ notify to feishu
 properties([
         parameters([
                 string(
-                        defaultValue: 'tiflow',
+                        defaultValue: '',
                         name: 'REPO',
-                        trim: true
+                        trim: true,
+                        description: 'repo name, example tidb / tiflow / pd / tikv / tiflash',
                 ),
                 string(
-                        defaultValue: 'v5.1.1-20211227',
+                        defaultValue: '',
+                        name: 'PRODUCT',
+                        trim: true,
+                        description: 'product name, example tidb / cdc / dm / br / lightning / dumpling / tiflash ',
+                ),
+                string(
+                        defaultValue: '',
                         name: 'HOTFIX_TAG',
-                        trim: true
+                        trim: true,
+                        description: 'hotfix tag, example v5.1.1-20211227',
                 ),
                 booleanParam(
                         defaultValue: true,
                         name: 'FORCE_REBUILD'
                 ),
+                booleanParam(
+                        defaultValue: false,
+                        name: 'DEBUG'
+                ),
+                choice(
+                    name: 'EDITION',
+                    choices: ['community', 'enterprise'],
+                    description: 'Passing community or enterprise',
+                ),
+                choice(
+                    name: 'ARCH',
+                    choices: ['amd64', 'arm64', "both"],
+                    description: 'build linux amd64 or arm64 or both',
+                )
     ])
 ])
 
@@ -70,12 +92,32 @@ tiupPatchBinaryMap = [
 
 GIT_HASH = ""
 HARBOR_PROJECT_PREFIX = "hub.pingcap.net/qa"
+if (params.DEBUG) {
+    println "DEBUG mode"
+    HARBOR_PROJECT_PREFIX = "hub.pingcap.net/wulifu"
+} else {
+    println "NOT DEBUG mode"
+}
 
 HOTFIX_BUILD_RESULT_FILE = "hotfix_build_result-${REPO}-${HOTFIX_TAG}.json"
 HOTFIX_BUILD_RESULT = [:]
 HOTFIX_BUILD_RESULT["repo"] = REPO
 
 buildMap = [:]
+
+
+def debugEnv() {
+    stage("debug env") {
+        echo("env")
+        echo("REPO: ${REPO}")
+        echo("PRODUCT: ${PRODUCT}")
+        echo("HOTFIX_TAG: ${HOTFIX_TAG}")
+        echo("FORCE_REBUILD: ${FORCE_REBUILD}")
+        echo("EDITION: ${EDITION}")
+        echo("HARBOR_PROJECT_PREFIX: ${HARBOR_PROJECT_PREFIX}")
+    }
+}
+
 
 // tag example : v5.3.1-20210221
 def selectImageGoVersion(repo, tag) {
@@ -115,7 +157,7 @@ def run_with_pod(Closure body) {
     podTemplate(label: label,
             cloud: cloud,
             namespace: namespace,
-            idleMinutes: 10,
+            idleMinutes: 0,
             containers: [
                     containerTemplate(
                             name: 'golang', alwaysPullImage: true,
@@ -152,7 +194,7 @@ def run_with_lightweight_pod(Closure body) {
                     containerTemplate(
                             name: 'golang', alwaysPullImage: true,
                             image: "${pod_go_docker_image}", ttyEnabled: true,
-                            resourceRequestCpu: '200m', resourceRequestMemory: '1Gi',
+                            resourceRequestCpu: '1000m', resourceRequestMemory: '1Gi',
                             command: '/bin/sh -c', args: 'cat',
                             envVars: [containerEnvVar(key: 'GOPATH', value: '/go')],
                             
