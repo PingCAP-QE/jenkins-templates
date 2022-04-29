@@ -325,6 +325,9 @@ def buildOne(repo, product, hash, arch, binary, tag) {
     if (arch == "arm64") {
         hotfixImageName = "${HARBOR_PROJECT_PREFIX}/${repo}-arm64:${tag}"
     }
+    if (params.DEBUG) {
+        hotfixImageName = "${hotfixImageName}-debug"
+    }
     HOTFIX_BUILD_RESULT["results"][product]["image"] = hotfixImageName
     println "build hotfix image ${hotfixImageName}"
     def dockerfile = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-${arch}/${product}"
