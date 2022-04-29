@@ -261,6 +261,13 @@ def checkOutCode(repo, tag) {
             }
             def githHash = sh(returnStdout: true, script: "git rev-parse HEAD").trim()
             GIT_HASH = githHash
+            if (GIT_HASH.length() == 40) {
+                println "valid commit hash: ${GIT_HASH}"
+            } else {
+                println "invalid commit hash: ${GIT_HASH}"
+                currentBuild.result = "FAILURE"
+                throw new Exception("invalid commit hash: ${GIT_HASH}, Throw to stop pipeline")
+            }
             println "checkout code ${repo} ${tag} ${githHash}"
         }
     }
