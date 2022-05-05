@@ -441,11 +441,10 @@ def notifyToFeishu(buildResultFile) {
 run_with_pod {
     container("golang") {
         stage("hotfix-${REPO}") {
-            // TODO enable valid hotfix tag
-            // if (!validHotfixTag(HOTFIX_TAG)) {
-            //     println "invalid hotfix tag ${HOTFIX_TAG}"
-            //     throw new Exception("invalid hotfix tag ${HOTFIX_TAG}")
-            // }
+            if (!validHotfixTag(HOTFIX_TAG)) {
+                println "invalid hotfix tag ${HOTFIX_TAG}"
+                throw new Exception("invalid hotfix tag ${HOTFIX_TAG}")
+            }
             def ws = pwd()
             dir("${REPO}") {
                 // checkOutCode(REPO, HOTFIX_TAG)
