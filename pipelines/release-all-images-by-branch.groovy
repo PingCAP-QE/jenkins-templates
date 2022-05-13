@@ -120,7 +120,8 @@ def parseBuildInfo(repo) {
         actualRepo = "tiflow"
     }
     // Notice: dm has been merged to tiflow from release-5.3.0, so we need to use tiflow as actual repo
-    if (repo == "dm" && GIT_BRANCH.startsWith("release-") && GIT_BRANCH >= "release-5.3") {
+    // only support dm build from v5.3.0
+    if (repo == "dm") {
         actualRepo = "tiflow"
     }
     // if (repo == "tiflash") {
@@ -596,9 +597,9 @@ try {
                     release_one_normal(product)
                 }
             }
-            releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog", "dm"]
-            if (GIT_BRANCH < "release-5.3") {
-                releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog"]
+            releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog"]
+            if ("${GIT_BRANCH}" >= "release-5.3" || "${GIT_BRANCH}" == "master") {
+                releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog", "dm"]
             }
             for (item in releaseReposMultiArch) {
                 def String product = "${item}"
