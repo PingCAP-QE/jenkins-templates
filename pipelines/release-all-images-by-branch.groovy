@@ -61,7 +61,7 @@ if (GIT_BRANCH.startsWith("release-")) {
 
 def get_sha(repo) {
     sh "curl -s ${FILE_SERVER_URL}/download/builds/pingcap/ee/get_hash_from_github.py > gethash.py"
-    if (repo == "ng-monitoring" && GIT_BRANCH=="master") {
+    if (repo == "ng-monitoring" && GIT_BRANCH == "master") {
         GIT_BRANCH = "main"
     }
     return sh(returnStdout: true, script: "python gethash.py -repo=${repo} -version=${GIT_BRANCH} -s=${FILE_SERVER_URL}").trim()
@@ -606,7 +606,7 @@ retry(2) {
             for (item in releaseReposMultiArch) {
                 def String product = "${item}"
                 def String stageName = "${product}-multi-arch"
-                if (!params.NEED_MULTIARCH) {
+                if (params.NEED_MULTIARCH == "false") {
                     stageName = "${product}"
                 }
                 builds[stageName] = {
