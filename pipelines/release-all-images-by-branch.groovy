@@ -616,10 +616,10 @@ retry(2) {
                     }
                 }
                 failpointRepos = ["tidb", "pd", "tikv", "br", "tidb-lightning"]
-                for (item in failpointRepos) {
-                    def String product = "${item}"
-                    builds["${item}-failpoint"] = {
-                        release_one_enable_failpoint(product)
+                for (item_failpoint in failpointRepos) {
+                    def String product_failpoint = "${item_failpoint}"
+                    builds["${item_failpoint}-failpoint"] = {
+                        release_one_enable_failpoint(product_failpoint)
                     }
                 }
                 parallel builds
