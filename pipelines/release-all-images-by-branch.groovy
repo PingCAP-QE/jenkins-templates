@@ -581,59 +581,63 @@ EOF
 
 }
 
-try {
-    node("${GO_BUILD_SLAVE}") {
-        container("golang") {
-            builds = [:]
-            if ("${GIT_BRANCH}" == "master") {
-                builds["monitoring"] = {
-                    release_master_monitoring()
+retry(2) {
+    try {
+        node("${GO_BUILD_SLAVE}") {
+            container("golang") {
+                builds = [:]
+                if ("${GIT_BRANCH}" == "master") {
+                    builds["monitoring"] = {
+                        release_master_monitoring()
+                    }
                 }
-            }
-            releaseRepos = ["tics"]
-            for (item in releaseRepos) {
-                def String product = "${item}"
-                builds["${item}-build"] = {
-                    release_one_normal(product)
+                releaseRepos = ["tics"]
+                for (item in releaseRepos) {
+                    def String product = "${item}"
+                    builds["${item}-build"] = {
+                        release_one_normal(product)
+                    }
                 }
-            }
-            releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog"]
-            if ("${GIT_BRANCH}" >= "release-5.3" || "${GIT_BRANCH}" == "master") {
-                releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog", "dm"]
-            }
-            for (item in releaseReposMultiArch) {
-                def String product = "${item}"
-                def String stageName = "${product}-multi-arch"
-                if (!params.NEED_MULTIARCH) {
-                    stageName = "${product}"
+                releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog"]
+                if ("${GIT_BRANCH}" >= "release-5.3" || "${GIT_BRANCH}" == "master") {
+                    releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog", "dm"]
                 }
-                builds[stageName] = {
-                    release_one_normal(product)
-                    release_one_debug(product)
+                for (item in releaseReposMultiArch) {
+                    def String product = "${item}"
+                    def String stageName = "${product}-multi-arch"
+                    if (!params.NEED_MULTIARCH) {
+                        stageName = "${product}"
+                    }
+                    builds[stageName] = {
+                        release_one_normal(product)
+                        release_one_debug(product)
+                    }
                 }
-            }
-            failpointRepos = ["tidb", "pd", "tikv", "br", "tidb-lightning"]
-            for (item in failpointRepos) {
-                def String product = "${item}"
-                builds["${item}-failpoint"] = {
-                    release_one_enable_failpoint(product)
+                failpointRepos = ["tidb", "pd", "tikv", "br", "tidb-lightning"]
+                for (item in failpointRepos) {
+                    def String product = "${item}"
+                    builds["${item}-failpoint"] = {
+                        release_one_enable_failpoint(product)
+                    }
                 }
+                parallel builds
             }
-            parallel builds
         }
+        currentBuild.result = "SUCCESS"
+    } catch (Exception e) {
+        currentBuild.result = "FAILURE"
+        echo 'Waiting 5 minutes'
+        sh "sleep 300 "
+    } finally {
+        build job: 'send_notify',
+                wait: true,
+                parameters: [
+                        [$class: 'StringParameterValue', name: 'RESULT_JOB_NAME', value: "${JOB_NAME}"],
+                        [$class: 'StringParameterValue', name: 'RESULT_BUILD_RESULT', value: currentBuild.result],
+                        [$class: 'StringParameterValue', name: 'RESULT_BUILD_NUMBER', value: "${BUILD_NUMBER}"],
+                        [$class: 'StringParameterValue', name: 'RESULT_RUN_DISPLAY_URL', value: "${RUN_DISPLAY_URL}"],
+                        [$class: 'StringParameterValue', name: 'RESULT_TASK_START_TS', value: "${taskStartTimeInMillis}"],
+                        [$class: 'StringParameterValue', name: 'SEND_TYPE', value: "FAILURE"]
+                ]
     }
-    currentBuild.result = "SUCCESS"
-} catch (Exception e) {
-    currentBuild.result = "FAILURE"
-} finally {
-    build job: 'send_notify',
-            wait: true,
-            parameters: [
-                    [$class: 'StringParameterValue', name: 'RESULT_JOB_NAME', value: "${JOB_NAME}"],
-                    [$class: 'StringParameterValue', name: 'RESULT_BUILD_RESULT', value: currentBuild.result],
-                    [$class: 'StringParameterValue', name: 'RESULT_BUILD_NUMBER', value: "${BUILD_NUMBER}"],
-                    [$class: 'StringParameterValue', name: 'RESULT_RUN_DISPLAY_URL', value: "${RUN_DISPLAY_URL}"],
-                    [$class: 'StringParameterValue', name: 'RESULT_TASK_START_TS', value: "${taskStartTimeInMillis}"],
-                    [$class: 'StringParameterValue', name: 'SEND_TYPE', value: "FAILURE"]
-            ]
 }
