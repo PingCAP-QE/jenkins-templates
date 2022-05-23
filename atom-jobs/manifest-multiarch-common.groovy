@@ -15,10 +15,9 @@ properties([
                         name: 'MULTI_ARCH_IMAGE',
                         trim: true,
                 ),
-                string(
+                booleanParam(
                         defaultValue: false,
-                        name: 'IF_ENTERPRISE',
-                        trim: true,
+                        name: 'IF_ENTERPRISE'
                 ),
         ])
 ])
