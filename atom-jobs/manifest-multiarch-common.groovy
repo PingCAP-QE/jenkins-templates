@@ -56,7 +56,7 @@ EOF
         if (IF_ENTERPRISE == "false") {
             stage("sync community image to dockerhub") {
                 source_image = params.MULTI_ARCH_IMAGE
-                dest_image = source_image.replace("hub.pingcap.com/qa", "pingcap")
+                dest_image = source_image.replace("hub.pingcap.net/qa", "pingcap")
                 def default_params = [
                         string(name: 'SOURCE_IMAGE', value: source_image),
                         string(name: 'TARGET_IMAGE', value: dest_image),
