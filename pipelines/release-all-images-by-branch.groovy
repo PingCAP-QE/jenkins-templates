@@ -517,7 +517,7 @@ def release_master_monitoring() {
             wait: true,
             parameters: paramsBuildArm
 
-    def imageNameAmd64 = "${HARBOR_PROJECT_PREFIX}/monitoring:master-amd64"
+    def imageNameAmd64 = "${HARBOR_PROJECT_PREFIX}/tidb-monitor-initializer:master-amd64"
     def paramsDockerAmd64 = [
             string(name: "ARCH", value: "amd64"),
             string(name: "OS", value: "linux"),
@@ -532,7 +532,7 @@ def release_master_monitoring() {
     build job: "docker-common-check",
             wait: true,
             parameters: paramsDockerAmd64
-    def imageNameArm64 = "${HARBOR_PROJECT_PREFIX}/monitoring:master-arm64"
+    def imageNameArm64 = "${HARBOR_PROJECT_PREFIX}/tidb-monitor-initializer:master-arm64"
     def paramsDockerArm64 = [
             string(name: "ARCH", value: "arm64"),
             string(name: "OS", value: "linux"),
@@ -547,7 +547,7 @@ def release_master_monitoring() {
     build job: "docker-common-check",
             wait: true,
             parameters: paramsDockerArm64
-    def multiArchImage = "${HARBOR_PROJECT_PREFIX}/monitoring:master"
+    def multiArchImage = "${HARBOR_PROJECT_PREFIX}/tidb-monitor-initializer:master"
     stage("manifest multiarch image") {
         // start manifest-tool to make multi arch image
         node("delivery") {
