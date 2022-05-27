@@ -630,8 +630,6 @@ retry(2) {
         }
     } catch (Exception e) {
         currentBuild.result = "FAILURE"
-        echo 'Waiting 5 minutes'
-        sh "sleep 300 "
     } finally {
         build job: 'send_notify',
                 wait: true,
