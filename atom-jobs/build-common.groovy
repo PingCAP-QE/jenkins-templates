@@ -826,7 +826,7 @@ def run_with_arm_go_pod(Closure body) {
             namespace: namespace,
             containers: [
                     containerTemplate(
-                            name: 'golang', alwaysPullImage: false,
+                            name: 'golang', alwaysPullImage: true,
                             image: "${arm_go_pod_image}", ttyEnabled: true,
                             resourceRequestCpu: '4000m', resourceRequestMemory: '8Gi',
                             command: '/bin/sh -c', args: 'cat',
