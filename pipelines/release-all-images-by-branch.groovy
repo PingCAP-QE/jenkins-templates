@@ -21,14 +21,14 @@ properties([
         ]),
         pipelineTriggers([
                 parameterizedCron('''
-                H H(0-23)/12 * * * % GIT_BRANCH=release-5.0;FORCE_REBUILD=false;NEED_MULTIARCH=false
-                H H(0-23)/12 * * * % GIT_BRANCH=release-5.1;FORCE_REBUILD=false;NEED_MULTIARCH=false
-                H H(0-23)/12 * * * % GIT_BRANCH=release-5.2;FORCE_REBUILD=false;NEED_MULTIARCH=false
-                H H(0-23)/12 * * * % GIT_BRANCH=release-5.3;FORCE_REBUILD=false;NEED_MULTIARCH=false
-                H H(0-23)/12 * * * % GIT_BRANCH=release-5.4;FORCE_REBUILD=false;NEED_MULTIARCH=false
-                H H(0-23)/12 * * * % GIT_BRANCH=release-6.0;FORCE_REBUILD=false;NEED_MULTIARCH=false
-                H H(0-23)/12 * * * % GIT_BRANCH=release-6.1;FORCE_REBUILD=false;NEED_MULTIARCH=true
-                H H(0-23)/12 * * * % GIT_BRANCH=master;FORCE_REBUILD=false;NEED_MULTIARCH=true
+                0 18 * * * % GIT_BRANCH=release-5.0;FORCE_REBUILD=false;NEED_MULTIARCH=false
+                0 18 * * * % GIT_BRANCH=release-5.1;FORCE_REBUILD=false;NEED_MULTIARCH=false
+                0 18 * * * % GIT_BRANCH=release-5.2;FORCE_REBUILD=false;NEED_MULTIARCH=false
+                0 18 * * * % GIT_BRANCH=release-5.3;FORCE_REBUILD=false;NEED_MULTIARCH=false
+                0 18 * * * % GIT_BRANCH=release-5.4;FORCE_REBUILD=false;NEED_MULTIARCH=false
+                0 18 * * * % GIT_BRANCH=release-6.0;FORCE_REBUILD=false;NEED_MULTIARCH=false
+                0 18 * * * % GIT_BRANCH=release-6.1;FORCE_REBUILD=false;NEED_MULTIARCH=true
+                0 19 * * * % GIT_BRANCH=master;FORCE_REBUILD=false;NEED_MULTIARCH=true
             ''')
         ])
 ])
