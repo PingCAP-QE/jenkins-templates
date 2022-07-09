@@ -710,7 +710,7 @@ try {
                     [$class: 'StringParameterValue', name: 'RESULT_BUILD_NUMBER', value: "${BUILD_NUMBER}"],
                     [$class: 'StringParameterValue', name: 'RESULT_RUN_DISPLAY_URL', value: "${RUN_DISPLAY_URL}"],
                     [$class: 'StringParameterValue', name: 'RESULT_TASK_START_TS', value: "${taskStartTimeInMillis}"],
-                    [$class: 'StringParameterValue', name: 'SEND_TYPE', value: "FAILURE"]
+                    [$class: 'StringParameterValue', name: 'SEND_TYPE', value: "ALL"]
             ]
     getHash()
     upload_result_to_db()
