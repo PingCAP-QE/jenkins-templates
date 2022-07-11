@@ -415,7 +415,6 @@ EOF
             build(job: "jenkins-image-syncer", parameters: sync_image_params, wait: true, propagate: true)
         }
     }
-
 }
 
 
