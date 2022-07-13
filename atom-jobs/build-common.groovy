@@ -12,6 +12,7 @@
 * @FAILPOINT(bool:build failpoint binary or not,only for tidb,tikv,pd now ,default false,Optional)
 * @EDITION(enumerate:,community,enterprise,Required)
 * @USE_TIFLASH_RUST_CACHE(string:use rust code cache, for tiflash only, Optional)
+* @TIFLASH_DEBUG(bool: for tiflash test of debug, default false)
 */
 
 properties([
@@ -84,7 +85,11 @@ properties([
                         defaultValue: '',
                         name: 'USE_TIFLASH_RUST_CACHE',
                         trim: true                        
-                ),                
+                ),
+                booleanParam(
+                        defaultValue: false,
+                        name: 'TIFLASH_DEBUG'
+                ),
     ])
 ])
 
@@ -573,11 +578,11 @@ if [ ${RELEASE_TAG}x != ''x ];then
     git branch -D refs/tags/${RELEASE_TAG} || true
     git checkout -b refs/tags/${RELEASE_TAG}
 fi;
-if [ ${EDITION} == 'enterprise' ]; then
+if [ ${EDITION} == 'enterprise' ];then
     export TIFLASH_EDITION=Enterprise
 fi;
-if [ ${OS} == 'darwin' ]; then
-    if [ ${ARCH} == "arm64" ]; then
+if [ ${OS} == 'darwin' ];then
+    if [ ${ARCH} == "arm64" ];then
         cd ..
         cp -f /Users/pingcap/birdstorm/fix-poco.sh ./
         cp -f /Users/pingcap/birdstorm/fix-libdaemon.sh ./
@@ -597,7 +602,7 @@ if [ ${OS} == 'darwin' ]; then
     ls -l ./release-darwin/tiflash/
     mv release-darwin ${TARGET}
 else
-    if [ "${params.USE_TIFLASH_RUST_CACHE}" == "true" ]; then
+    if [ ${params.USE_TIFLASH_RUST_CACHE} == 'true' ]; then
         mkdir -p ~/.cargo/registry
         mkdir -p ~/.cargo/git
         mkdir -p /rust/registry/cache
@@ -612,7 +617,8 @@ else
     fi
 
     # check if LLVM toolchain is provided
-    if [[ -d "release-centos7-llvm" && \$(which clang 2>/dev/null) ]]
+    
+    if [[ -d "release-centos7-llvm" && \\\$(which clang 2>/dev/null) ]]
     then
         NPROC=12 release-centos7-llvm/scripts/build-release.sh
         mkdir -p ${TARGET}
@@ -621,6 +627,16 @@ else
         NPROC=12 release-centos7/build/build-release.sh
         mkdir -p ${TARGET}
         mv release-centos7/tiflash ${TARGET}/tiflash
+    fi
+    
+    if [[ ${params.TIFLASH_DEBUG} == 'true' && ${OS} == 'linux' && ${ARCH} == "amd64" && -f "release-centos7-llvm/Makefile" ]]
+    then
+        echo "Start build images for tiflash debug mode................"
+        cd release-centos7-llvm/
+        make build_tiflash_debug_amd64
+        mkdir -p ${TARGET}
+        mv release-centos7-llvm/tiflash ${TARGET}/tiflash
+        echo "Build images finished! "
     fi
 fi
 rm -rf ${TARGET}/build-release || true
