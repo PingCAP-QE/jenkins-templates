@@ -121,7 +121,7 @@ def startBuildBinary(arch, binary, actualRepo, repo, sha1, failpoint) {
     ]
 
 
-    if (repo == "tics-debug") {
+    if (repo == "tics-debug" && GIT_BRANCH == "master") {
         paramsBuild = [
                 string(name: "ARCH", value: arch),
                 string(name: "OS", value: "linux"),
