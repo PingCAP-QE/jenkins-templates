@@ -140,7 +140,7 @@ def startBuildBinary(arch, binary, actualRepo, repo, sha1, failpoint) {
 
     println "paramsBuild: ${paramsBuild}"
 
-    build job: "build_common_for_test_tiflash",
+    build job: "build-common",
             wait: true,
             parameters: paramsBuild
 }
@@ -311,6 +311,12 @@ def release_one_normal(repo) {
         if (repo == "tics") {
             amd64Images = "${buildInfo.imageNameAmd64},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-linux-amd64"
             arm64Images = "${buildInfo.imageNameArm64},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-linux-arm64"
+        }
+
+        if (repo == "tics-debug") {
+            amd64Images = "${buildInfo.imageNameAmd64},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-debug-linux-amd64"
+            arm64Images = "${buildInfo.imageNameArm64},${HARBOR_PROJECT_PREFIX}/tiflash:${GIT_BRANCH}-debug-linux-arm64"
+            dockerProduct = "tics"
         }
 
         stage("build amd64 image") {
@@ -686,14 +692,14 @@ try {
     run_with_pod {
         container("golang") {
             builds = [:]
-//            if ("${GIT_BRANCH}" == "master") {
-//                builds["monitoring"] = {
-//                    retry(2) {
-//                        release_master_monitoring()
-//                    }
-//                }
-//            }
-            releaseRepos = ["tics-debug"]
+            if ("${GIT_BRANCH}" == "master") {
+                builds["monitoring"] = {
+                    retry(2) {
+                        release_master_monitoring()
+                    }
+                }
+            }
+            releaseRepos = ["tics", "tics-debug"]
             for (item in releaseRepos) {
                 def product = "${item}"
                 builds["${item}-build"] = {
@@ -702,34 +708,34 @@ try {
                     }
                 }
             }
-//            releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog"]
-//            if ("${GIT_BRANCH}" >= "release-5.3" || "${GIT_BRANCH}" == "master") {
-//                releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog", "dm", "ng-monitoring"]
-//            }
-//            for (item in releaseReposMultiArch) {
-//                def product = "${item}"
-//                def stageName = "${product}-multi-arch"
-//                if (params.NEED_MULTIARCH == "false") {
-//                    stageName = "${product}"
-//                }
-//                builds[stageName] = {
-//                    retry(2) {
-//                        release_one_normal(product)
-//                        if (product != "ng-monitoring") {
-//                            release_one_debug(product)
-//                        }
-//                    }
-//                }
-//            }
-//            failpointRepos = ["tidb", "pd", "tikv", "br", "tidb-lightning"]
-//            for (item_failpoint in failpointRepos) {
-//                def product_failpoint = "${item_failpoint}"
-//                builds["${item_failpoint}-failpoint"] = {
-//                    retry(2) {
-//                        release_one_enable_failpoint(product_failpoint)
-//                    }
-//                }
-//            }
+            releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog"]
+            if ("${GIT_BRANCH}" >= "release-5.3" || "${GIT_BRANCH}" == "master") {
+                releaseReposMultiArch = ["tidb", "tikv", "pd", "br", "tidb-lightning", "ticdc", "dumpling", "tidb-binlog", "dm", "ng-monitoring"]
+            }
+            for (item in releaseReposMultiArch) {
+                def product = "${item}"
+                def stageName = "${product}-multi-arch"
+                if (params.NEED_MULTIARCH == "false") {
+                    stageName = "${product}"
+                }
+                builds[stageName] = {
+                    retry(2) {
+                        release_one_normal(product)
+                        if (product != "ng-monitoring") {
+                            release_one_debug(product)
+                        }
+                    }
+                }
+            }
+            failpointRepos = ["tidb", "pd", "tikv", "br", "tidb-lightning"]
+            for (item_failpoint in failpointRepos) {
+                def product_failpoint = "${item_failpoint}"
+                builds["${item_failpoint}-failpoint"] = {
+                    retry(2) {
+                        release_one_enable_failpoint(product_failpoint)
+                    }
+                }
+            }
             parallel builds
         }
         currentBuild.result = "SUCCESS"
