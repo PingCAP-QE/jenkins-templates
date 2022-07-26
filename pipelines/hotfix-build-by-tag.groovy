@@ -615,6 +615,9 @@ def notifyToFeishuNew(buildResultFile) {
         command = "./pd-server -V"
     } else if (PRODUCT == "tidb-binlog") {
         command = "./binlogctl -V"
+    } else {
+        echo "The product chosen is not in range, please check it ! exit now."
+        sh "exit 1"
     }
 
     def harbor_addr = "hub.pingcap.net/qa/${REPO}:${HOTFIX_TAG}"
@@ -622,7 +625,7 @@ def notifyToFeishuNew(buildResultFile) {
 
     sh """
         wget ${FILE_SERVER_URL}/download/builds/pingcap/ee/tiinsights-hotfix-builder-notify-new.py
-        python3 tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE}
+        python3 tiinsights-hotfix-builder-notify-new.py ${buildResultFile}
     """
 }
 
