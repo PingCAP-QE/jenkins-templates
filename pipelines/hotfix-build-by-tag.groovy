@@ -704,6 +704,9 @@ def upload_result_to_db() {
 env.DOCKER_HOST = "tcp://localhost:2375"
 env.DOCKER_REGISTRY = "docker.io"
 
+env.DOCKER_HOST = "tcp://localhost:2375"
+env.DOCKER_REGISTRY = "docker.io"
+
 try{
     run_with_pod {
     container("golang") {
