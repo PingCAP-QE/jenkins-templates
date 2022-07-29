@@ -600,7 +600,6 @@ def notifyToFeishuNew(buildResultFile) {
             echo "${HOTFIX_BUILD_RESULT_FILE}"
             echo "${HOTFIX_BUILD_RESULT}"
 
-
             if(fileExists("tiinsights-hotfix-builder-notify-new.py")){
                 sh "rm tiinsights-hotfix-builder-notify-new.py"
             }
