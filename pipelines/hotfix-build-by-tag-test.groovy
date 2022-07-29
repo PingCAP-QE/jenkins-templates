@@ -183,6 +183,9 @@ try{
                     python tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE}
                     cat t_text
 
+                    """
+                        echo "start test git"
+                        sh """
                     git init
                     git clone git@github.com:PingCAP-QE/hotfix_info_records.git
                     """
