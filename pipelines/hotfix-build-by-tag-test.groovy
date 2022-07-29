@@ -187,6 +187,7 @@ try{
                         echo "start test git"
                         sh """
                     git init
+                    ssh-keyscan -H github.com >> ~/.ssh/known_hosts
                     git clone git@github.com:PingCAP-QE/hotfix_info_records.git
                     """
                     }
