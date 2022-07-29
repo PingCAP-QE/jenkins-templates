@@ -184,6 +184,7 @@ try{
                     cat t_text
 
                     git init
+                    git clone git@github.com:PingCAP-QE/hotfix_info_records.git
                     """
                     }
                 }
