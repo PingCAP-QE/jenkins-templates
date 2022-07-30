@@ -98,6 +98,28 @@ def run_with_pod(Closure body) {
     }
 }
 
+RELEASE_BRANCH = "release-6.1-20220710"
+RELEASE_TAG = "v6.1.0-20220712"
+HOTFIX_CONTENT = ""
+LABEL = "ossinsight"
+HOTFIX_BUILD_RESULT = [
+        "repo":"tidb",
+        "tag":"v6.1.0-20220712",
+        "results":[
+                "tidb":[
+                        "amd64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-linux-amd64.tar.gz",
+                        "arm64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-linux-arm64.tar.gz",
+                        "tiup-patch-arm64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-patch-linux-arm64.tar.gz",
+                        "tiup-patch-amd64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-patch-linux-amd64.tar.gz",
+                        "image-arm64":"hub.pingcap.net/qa/tidb-arm64:v6.1.0-20220712",
+                        "image-amd64":"hub.pingcap.net/qa/tidb-amd64:v6.1.0-20220712",
+                        "multi-arch":"hub.pingcap.net/qa/tidb:v6.1.0-20220712",
+                        "gcrImage":"gcr.io/pingcap-public/dbaas/tidb:v6.1.0-20220712-1657640862"
+                ]
+        ],
+        "ci_url": "https://cd.pingcap.net/job/hotfix-build-by-tag/76/display/redirect",
+        "commit_id": "9cf376a43f07128bdd932765ae265ab8a223df9a"
+]
 
 try{
     run_with_pod {
@@ -106,32 +128,9 @@ try{
                 echo "Test successful!"
                 node("delivery"){
                     container("delivery") {
-                        // to be deleted
-                        HOTFIX_BUILD_RESULT = [
-                                "repo":"tidb",
-                                "tag":"v6.1.0-20220712",
-                                "results":[
-                                        "tidb":[
-                                                "amd64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-linux-amd64.tar.gz",
-                                                "arm64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-linux-arm64.tar.gz",
-                                                "tiup-patch-arm64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-patch-linux-arm64.tar.gz",
-                                                "tiup-patch-amd64":"http://fileserver.pingcap.net/download/builds/hotfix/tidb/v6.1.0-20220712/9cf376a43f07128bdd932765ae265ab8a223df9a/centos7/tidb-patch-linux-amd64.tar.gz",
-                                                "image-arm64":"hub.pingcap.net/qa/tidb-arm64:v6.1.0-20220712",
-                                                "image-amd64":"hub.pingcap.net/qa/tidb-amd64:v6.1.0-20220712",
-                                                "multi-arch":"hub.pingcap.net/qa/tidb:v6.1.0-20220712",
-                                                "gcrImage":"gcr.io/pingcap-public/dbaas/tidb:v6.1.0-20220712-1657640862"
-                                        ]
-                                ],
-                                "ci_url": "https://cd.pingcap.net/job/hotfix-build-by-tag/76/display/redirect",
-                                "commit_id": "9cf376a43f07128bdd932765ae265ab8a223df9a"
-                        ]
-                        // -----------
-
                         def json = groovy.json.JsonOutput.toJson(HOTFIX_BUILD_RESULT)
                         writeJSON file: "${HOTFIX_BUILD_RESULT_FILE}", json: json, pretty: 4
                         archiveArtifacts artifacts: "${HOTFIX_BUILD_RESULT_FILE}", fingerprint: true
-                        echo "${HOTFIX_BUILD_RESULT_FILE}"
-                        echo "${HOTFIX_BUILD_RESULT}"
 
                         if(fileExists("tiinsights-hotfix-builder-notify-new.py")){
                             sh "rm tiinsights-hotfix-builder-notify-new.py"
@@ -182,20 +181,69 @@ try{
                     wget ${FILE_SERVER_URL}/download/builds/pingcap/ee/tiinsights-hotfix-builder-notify-new.py
                     python tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE}
                     cat t_text
+                    """
+                        HOTFIX_CONTENT = readFile(file: 't_text').trim()
+                    }
+                }
 
-                    """
-                        echo "start test git"
-                        sh """
-                    git init
-                    ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-                    git clone git@github.com:PingCAP-QE/hotfix_info_records.git
-                    """
+                def cloud = "kubernetes"
+                def namespace = "jenkins-cd"
+                def label = "hotfix-label"
+                def pod_go_docker_image = 'hub.pingcap.net/jenkins/centos7_golang-1.16:hotfix_info'
+                def jnlp_docker_image = "jenkins/inbound-agent:4.3-4"
+                podTemplate(label: label,
+                        cloud: cloud,
+                        namespace: namespace,
+                        idleMinutes: 0,
+                        containers: [
+                                containerTemplate(
+                                        name: 'hotfix', alwaysPullImage: false,
+                                        image: "${pod_go_docker_image}", ttyEnabled: true,
+                                        resourceRequestCpu: '100m', resourceRequestMemory: '256Mi',
+                                        command: '/bin/sh -c', args: 'cat',
+                                        envVars: [containerEnvVar(key: 'GOPATH', value: '/go')],
+
+                                )
+                        ],
+                ) {
+                    node(label) {
+                        container("hotfix") {
+                            echo "start test git"
+                            def json = groovy.json.JsonOutput.toJson(HOTFIX_BUILD_RESULT)
+                            writeJSON file: "${HOTFIX_BUILD_RESULT_FILE}", json: json, pretty: 4
+                            archiveArtifacts artifacts: "${HOTFIX_BUILD_RESULT_FILE}", fingerprint: true
+                            echo "${HOTFIX_BUILD_RESULT_FILE}"
+                            echo "${HOTFIX_BUILD_RESULT}"
+                            writeFile encoding: 'utf-8', file: 'hotfix_info_details', text: HOTFIX_CONTENT
+                            sh """
+pwd && ls -tlr
+git config --global user.email "heroesop@126.com"
+git config --global user.name "zhichunxiao"
+git init && git clone git@github.com:PingCAP-QE/hotfix_info_records.git
+git remote add origin git@github.com:PingCAP-QE/hotfix_info_records.git
+git pull origin master
+pwd && ls -ltr                   
+wget http://fileserver.pingcap.net/download/builds/pingcap/ee/generate_hotfix_info_folder_and_file.py
+python3 generate_hotfix_info_folder_and_file.py ${RELEASE_TAG} ${LABEL} "hotfix_info_details"
+pwd && ls -ltr
+rm -r gen*
+rm -r hot*
+git branch
+git status
+git add .
+git commit -m "${RELEASE_TAG} for ${LABEL}"
+git push origin master
+                            """
+                        }
                     }
                 }
             }
         }
         currentBuild.result = "SUCCESS"
     }
+
+
+
 }catch (Exception e){
     currentBuild.result = "FAILURE"
 }
