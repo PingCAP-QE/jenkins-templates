@@ -98,6 +98,10 @@ def run_with_pod(Closure body) {
     }
 }
 
+RELEASE_BRANCH = "release-6.1-20220710"
+RELEASE_TAG = "v6.1.0-20220712"
+HOTFIX_CONTENT = "xxx"
+LABEL = "极兔快递"
 
 try{
     run_with_pod {
@@ -107,6 +111,7 @@ try{
                 node("delivery"){
                     container("delivery") {
                         // to be deleted
+
                         HOTFIX_BUILD_RESULT = [
                                 "repo":"tidb",
                                 "tag":"v6.1.0-20220712",
@@ -182,20 +187,55 @@ try{
                     wget ${FILE_SERVER_URL}/download/builds/pingcap/ee/tiinsights-hotfix-builder-notify-new.py
                     python tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE}
                     cat t_text
+                    """
+                        HOTFIX_CONTENT = sh(returnStdout: true, script: "cat t_text").trim()
+                    }
+                }
 
-                    """
-                        echo "start test git"
-                        sh """
+                def cloud = "kubernetes"
+                def namespace = "jenkins-cd"
+                def label = "hotfix-label"
+                def pod_go_docker_image = 'hub.pingcap.net/jenkins/centos7_golang-1.16:hotfix_info'
+                def jnlp_docker_image = "jenkins/inbound-agent:4.3-4"
+                podTemplate(label: label,
+                        cloud: cloud,
+                        namespace: namespace,
+                        idleMinutes: 0,
+                        containers: [
+                                containerTemplate(
+                                        name: 'hotfix', alwaysPullImage: false,
+                                        image: "${pod_go_docker_image}", ttyEnabled: true,
+                                        resourceRequestCpu: '100m', resourceRequestMemory: '256Mi',
+                                        command: '/bin/sh -c', args: 'cat',
+                                        envVars: [containerEnvVar(key: 'GOPATH', value: '/go')],
+
+                                )
+                        ],
+                ) {
+                    node(label) {
+                        container("hotfix") {
+                            echo "start test git"
+                            sh """
                     git init
-                    ssh-keyscan -H github.com >> ~/.ssh/known_hosts
                     git clone git@github.com:PingCAP-QE/hotfix_info_records.git
+                    git pull origin master
+                    
+                    wget http://fileserver.pingcap.net/download/builds/pingcap/ee/generate_hotfix_info_folder_and_file.py
+                    python3 generate_hotfix_info_folder_and_file.py ${RELEASE_TAG} ${LABEL} ${HOTFIX_CONTENT}
+                    cd /home/jenkins/hotfix_info_records
+                    git add .
+                    git commit -m "${RELEASE_TAG} for ${LABEL}"
+                    git push origin master
                     """
+                        }
                     }
                 }
             }
         }
         currentBuild.result = "SUCCESS"
     }
+
+
 }catch (Exception e){
     currentBuild.result = "FAILURE"
 }
