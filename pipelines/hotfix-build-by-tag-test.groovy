@@ -14,9 +14,21 @@ properties([
                 ),
                 string(
                         defaultValue: '',
+                        name: 'RELEASE_BRANCH',
+                        trim: true,
+                        description: 'release branch, example release-6.1-20220710',
+                ),
+                string(
+                        defaultValue: '',
                         name: 'HOTFIX_TAG',
                         trim: true,
-                        description: 'hotfix tag, example v5.1.1-20211227',
+                        description: 'hotfix tag, example v5.1.1-20211227 v6.1.0-20220712',
+                ),
+                string(
+                        defaultValue: '',
+                        name: 'LABEL',
+                        trim: true,
+                        description: 'label, example ossinsight',
                 ),
                 string(
                         defaultValue: '',
@@ -98,10 +110,11 @@ def run_with_pod(Closure body) {
     }
 }
 
-RELEASE_BRANCH = "release-6.1-20220710"
-RELEASE_TAG = "v6.1.0-20220712"
+RELEASE_BRANCH = "${params.RELEASE_BRANCH}"     //  release-6.1-20220710
+RELEASE_TAG = "${params.HOTFIX_TAG}"    // v6.1.0-20220712
+LABEL = "${params.LABEL}"   // ossinsight
+
 HOTFIX_CONTENT = ""
-LABEL = "ossinsight"
 HOTFIX_BUILD_RESULT = [
         "repo":"tidb",
         "tag":"v6.1.0-20220712",
@@ -169,7 +182,7 @@ try{
                             sh "exit 1"
                         }
 
-                        def harbor_addr = "hub.pingcap.net/qa/${repo}:${tag}"
+                        def harbor_addr = "hub.pingcap.net/qa/${params.PRODUCT}:${tag}"
                         sh """
                         docker pull ${harbor_addr}
                         docker run -i --rm --entrypoint /bin/sh ${harbor_addr} -c \"${command}\" > container_info
@@ -179,7 +192,7 @@ try{
 
                         sh """
                     wget ${FILE_SERVER_URL}/download/builds/pingcap/ee/tiinsights-hotfix-builder-notify-new.py
-                    python tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE}
+                    python tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE} ${command}
                     cat t_text
                     """
                         HOTFIX_CONTENT = readFile(file: 't_text').trim()
@@ -224,14 +237,14 @@ git remote add origin git@github.com:PingCAP-QE/hotfix_info_records.git
 git pull origin master
 pwd && ls -ltr                   
 wget http://fileserver.pingcap.net/download/builds/pingcap/ee/generate_hotfix_info_folder_and_file.py
-python3 generate_hotfix_info_folder_and_file.py ${RELEASE_TAG} ${LABEL} "hotfix_info_details"
+python3 generate_hotfix_info_folder_and_file.py ${RELEASE_TAG} ${params.LABEL} "hotfix_info_details"
 pwd && ls -ltr
 rm -r gen*
 rm -r hot*
 git branch
 git status
 git add .
-git commit -m "${RELEASE_TAG} for ${LABEL}"
+git commit -m "${RELEASE_TAG} for ${params.LABEL}"
 git push origin master
                             """
                         }
@@ -241,9 +254,6 @@ git push origin master
         }
         currentBuild.result = "SUCCESS"
     }
-
-
-
 }catch (Exception e){
     currentBuild.result = "FAILURE"
 }
