@@ -157,43 +157,50 @@ try{
                         println "notify to feishu: ${repo} ${tag}"
 
 
-                        def command = "./tidb-server -V"
+                        def commands = "./tidb-server -V"
                         if (product == "tidb") {
-                            command = "./tidb-server -V"
+                            commands = "./tidb-server -V"
                         } else if (product == "tiflash") {
-                            command = "/tiflash/tiflash version"
+                            commands = "/tiflash/tiflash version"
                         } else if (product == "ticdc") {
-                            command = "./cdc version"
+                            commands = "./cdc version"
                         } else if (product == "tikv") {
-                            command = "./tikv-server -V"
+                            commands = "./tikv-server -V, ./tikv-ctl -V"
                         } else if (product == "dm") {
-                            command = "./dmctl -V"
+                            commands = "./dmctl -V, ./dm-worker -V, ./dm-master -V"
                         } else if (product == "br") {
-                            command = "./br -V"
+                            commands = "./br -V"
                         } else if (product == "lightning") {
-                            command = "./tidb-lightning -V"
+                            commands = "./tidb-lightning -V, ./tidb-lightning-ctl -V, ./br -V"
                         } else if (product == "dumpling") {
-                            command = "./dumpling -V"
+                            commands = "./dumpling -V"
                         } else if (product == "tidb-binlog") {
-                            command = "./binlogctl -V"
+                            commands = "./reparo -V, ./binlogctl -V, ./pump -V, ./drainer -V"
                         } else if (product == "pd") {
-                            command = "./pd-server -V"
+                            commands = "./pd-server -V, ./pd-recover -V, ./pd-ctl -V"
                         } else {
                             echo "repo is : ${repo}, not exist, exit now!"
                             sh "exit 1"
                         }
 
                         def harbor_addr = "hub.pingcap.net/qa/${params.PRODUCT}:${tag}"
-                        sh """
-                        docker pull ${harbor_addr}
-                        docker run -i --rm --entrypoint /bin/sh ${harbor_addr} -c \"${command}\" > container_info
-                        cat container_info
-                    """
+                        for (command in commands.split(",")) {
+                            def c = command
+                            sh """
+                            docker pull ${harbor_addr}
+                            echo "${c}" >> container_info
+                            echo "-------------------------------------------------------------------" >> container_info
+                            docker run -i --rm --entrypoint /bin/sh ${harbor_addr} -c \"${c}\" >> container_info
+                            echo "-------------------------------------------------------------------" >> container_info
+                            cat container_info                        
+                            """
+                        }
+
                         def output = readFile(file: 'container_info').trim()
 
                         sh """
                     wget ${FILE_SERVER_URL}/download/builds/pingcap/ee/tiinsights-hotfix-builder-notify-new.py
-                    python tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE} ${command}
+                    python tiinsights-hotfix-builder-notify-new.py ${HOTFIX_BUILD_RESULT_FILE} ${commands}
                     cat t_text
                     """
                         HOTFIX_CONTENT = readFile(file: 't_text').trim()
@@ -203,7 +210,7 @@ try{
                 def cloud = "kubernetes"
                 def namespace = "jenkins-cd"
                 def label = "hotfix-label"
-                def pod_go_docker_image = 'hub.pingcap.net/jenkins/centos7_golang-1.16:hotfix_info'
+                def pod_go_docker_image = 'hub.pingcap.net/jenkins/centos7_golang-1.16:hotfix_info_zh1'
                 def jnlp_docker_image = "jenkins/inbound-agent:4.3-4"
                 podTemplate(label: label,
                         cloud: cloud,
