@@ -111,7 +111,7 @@ def ifFileCacheExists() {
     // result equal 0 mean cache file exists
     if (result == 0) {
         echo "file ${FILE_SERVER_URL}/download/${OUTPUT_BINARY} found in cache server,skip build again"
-        return true
+        return trueF
     }
     return false
 }
@@ -795,8 +795,15 @@ def packageBinary() {
         sh """
         cd ${TARGET}
         tar --exclude=${TARGET}.tar.gz -czvf ${TARGET}.tar.gz *
-        curl -F ${OUTPUT_BINARY}=@${TARGET}.tar.gz ${FILE_SERVER_URL}/upload
+        curl -F ${OUTPUT_BINARY}=@${TARGET}.tar.gz ${FILE_SFERVER_URL}/upload
         """
+        if (PRODUCT == "enterprise-plugin") {
+            sh """
+                upload.py ${TARGET}.tar.gz ${TARGET}.tar.gz
+                aws s3 cp ${TARGET}.tar.gz s3://download.pingcap.org/${TARGET}.tar.gz --acl public-read
+                echo "upload ${TARGET}.tar.gz successed!
+            """
+        }
     }
 }
 
