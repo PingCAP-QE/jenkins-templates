@@ -204,7 +204,7 @@ def run_with_pod(Closure body) {
                             resourceRequestCpu: '2000m', resourceRequestMemory: '4Gi',
                             command: '/bin/sh -c', args: 'cat',
                             envVars: [containerEnvVar(key: 'GOPATH', value: '/go')],
-
+                            
                     )
             ],
             volumes: [
@@ -236,7 +236,7 @@ def run_with_lightweight_pod(Closure body) {
                             resourceRequestCpu: '1000m', resourceRequestMemory: '1Gi',
                             command: '/bin/sh -c', args: 'cat',
                             envVars: [containerEnvVar(key: 'GOPATH', value: '/go')],
-
+                            
                     )
             ],
             volumes: [
@@ -315,7 +315,7 @@ def checkOutCode(repo, tag) {
 
 def buildTiupPatch(originalFile, packageName, patchFile, arch) {
     if (packageName in ["tikv", "tidb", "pd", "ticdc"]) {
-        HOTFIX_BUILD_RESULT["results"][packageName]["tiup-patch-${arch}"] = "${FILE_SERVER_URL}/download/${patchFile}"
+        HOTFIX_BUILD_RESULT["results"][packageName]["tiup-patch-${arch}"] = "${FILE_SERVER_URL}/download/${patchFile}"  
         println "build tiup patch for ${packageName}"
         run_with_lightweight_pod {
             container("golang") {
@@ -370,7 +370,7 @@ def buildOne(repo, product, hash, arch, binary, tag) {
     }
 
     def plugin_output_binary = "builds/hotfix/enterprise-plugin/${tag}/${ENTERPRISE_PLUGIN_HASH}/centos7/enterprise-plugin-linux-${arch}.tar.gz"
-    if (params.DEBUG) {
+    if (params.DEBUG) { 
         plugin_output_binary = "builds/hotfix-debug/enterprise-plugin/${tag}/${ENTERPRISE_PLUGIN_HASH}/centos7/enterprise-plugin-linux-${arch}.tar.gz"
     }
 
@@ -406,10 +406,10 @@ def buildOne(repo, product, hash, arch, binary, tag) {
     def originalFilePath = "${FILE_SERVER_URL}/download/${binary}"
     def patchFilePath = "builds/hotfix/${product}/${tag}/${GIT_HASH}/centos7/${product}-patch-linux-${arch}.tar.gz"
     if (params.DEBUG) {
-          patchFilePath = "builds/hotfix-debug/${product}/${tag}/${GIT_HASH}/centos7/${product}-patch-linux-${arch}.tar.gz"
+          patchFilePath = "builds/hotfix-debug/${product}/${tag}/${GIT_HASH}/centos7/${product}-patch-linux-${arch}.tar.gz"  
     }
     buildTiupPatch("${FILE_SERVER_URL}/download/${binary}", product, patchFilePath, arch)
-
+    
 
     def hotfixImageName = "${HARBOR_PROJECT_PREFIX}/${product}:${tag}"
     // if arch is both, we need to build multi-arch image
@@ -426,7 +426,7 @@ def buildOne(repo, product, hash, arch, binary, tag) {
     HOTFIX_BUILD_RESULT["results"][product]["image-${arch}"] = hotfixImageName
     println "build hotfix image ${hotfixImageName}"
     def dockerfile = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-${arch}/${product}"
-    if (product == "tidb" && EDITION == "enterprise") {
+    if (product == "tidb" && EDITION == "enterprise") { 
         dockerfile = "https://raw.githubusercontent.com/PingCAP-QE/ci/main/jenkins/Dockerfile/release/linux-${arch}/enterprise/${product}"
     }
     def INPUT_BINARYS = binary
@@ -446,7 +446,7 @@ def buildOne(repo, product, hash, arch, binary, tag) {
     build job: "docker-common",
             wait: true,
             parameters: paramsDocker
-
+    
 }
 
 
@@ -505,7 +505,7 @@ def buildByTag(repo, tag, packageName) {
             HOTFIX_BUILD_RESULT["results"]["${packageName}"] = [
                 "amd64": "${FILE_SERVER_URL}/download/${amd64Binary}",
             ]
-            builds["${packageName}-${ARCH}"] = {
+            builds["${packageName}-${ARCH}"] = { 
                 buildOne(repo, packageName, GIT_HASH, "amd64", amd64Binary, tag)
             }
             break
@@ -513,7 +513,7 @@ def buildByTag(repo, tag, packageName) {
             HOTFIX_BUILD_RESULT["results"]["${packageName}"] = [
                 "arm64": "${FILE_SERVER_URL}/download/${arm64Binary}",
             ]
-            builds["${packageName}-${ARCH}"] = {
+            builds["${packageName}-${ARCH}"] = {  
                 buildOne(repo, packageName, GIT_HASH, "arm64", arm64Binary, tag)
             }
             break
@@ -522,10 +522,10 @@ def buildByTag(repo, tag, packageName) {
                 "amd64": "${FILE_SERVER_URL}/download/${amd64Binary}",
                 "arm64": "${FILE_SERVER_URL}/download/${arm64Binary}",
             ]
-            builds["${packageName}-amd64"] = {
+            builds["${packageName}-amd64"] = {  
                 buildOne(repo, packageName, GIT_HASH, "amd64", amd64Binary, tag)
             }
-            builds["${packageName}-arm64"] = {
+            builds["${packageName}-arm64"] = {  
                 buildOne(repo, packageName, GIT_HASH, "arm64", arm64Binary, tag)
             }
             break
@@ -554,12 +554,12 @@ def buildByTag(repo, tag, packageName) {
                 wait: true,
                 parameters: paramsManifest
         }
-
+        
         // all image push gcr are multiarch images
         // only push image to gcr when not debug
         if (!params.DEBUG && params.PUSH_GCR) {
             stage("push image gcr") {
-                pushImageToGCR(manifestImage, repo, packageName, tag)
+                pushImageToGCR(manifestImage, repo, packageName, tag)  
             }
         }
     }
@@ -706,8 +706,8 @@ def testImageWithBasicSql={HOTFIX_TAG, PRODUCT ->
         build job: check-images-with-basic-sql,
                 wait: false,
                 parameters: [
-                string( name: 'hotfixVersion', value: HOTFIX_TAG),
-                choice( name: 'component', value: PRODUCT)
+                        string( name: 'hotfixVersion', value: HOTFIX_TAG),
+                        choice( name: 'component', value: PRODUCT)
                 ]
     }
 }
@@ -741,7 +741,6 @@ try{
                 println "checkout code ${REPO} ${HOTFIX_TAG} ${GIT_HASH}"
                 buildByTag(REPO, HOTFIX_TAG, PRODUCT)
                 testImageWithBasicSql(HOTFIX_TAG, PRODUCT)
-
 
 //                notifyToFeishu(HOTFIX_BUILD_RESULT_FILE)
                 notifyToFeishuNew(HOTFIX_BUILD_RESULT_FILE)
