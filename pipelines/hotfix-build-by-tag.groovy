@@ -703,7 +703,7 @@ def upload_result_to_db() {
 
 def testImageWithBasicSql={HOTFIX_TAG, PRODUCT ->
     if (PRODUCT in ["tidb", "tikv", "pd", "tiflash"]){
-        build job: check-images-with-basic-sql,
+        build job: 'check-images-with-basic-sql',
                 wait: false,
                 parameters: [
                         string( name: 'hotfixVersion', value: HOTFIX_TAG),
