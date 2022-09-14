@@ -235,6 +235,7 @@ def checkoutCode() {
         cp -R ${repoDailyCache}  ./
         tar -xzf ${repoDailyCache} --strip-components=1
         rm -f src-${REPO}.tar.gz
+        rm -rf ./*
         """
         sh "chown -R 1000:1000 ./"
     } else {
@@ -249,6 +250,7 @@ def checkoutCode() {
             curl -O ${codeCacheInFileserverUrl}
             tar -xzf src-${REPO}.tar.gz --strip-components=1
             rm -f src-${REPO}.tar.gz
+            rm -rf ./*
             """
         } else {
             println "get code from github"
@@ -264,7 +266,7 @@ def checkoutCode() {
                         userRemoteConfigs: [[credentialsId: 'github-sre-bot-ssh',
                                             refspec      : specRef,
                                             url          : repo]]]
-    sh "git checkout ${GIT_HASH}"
+    sh 'test -z "$(git status --porcelain)"'
 }
 
 
