@@ -141,7 +141,7 @@ def String needUpgradeGoVersion(String tag,String branch) {
     if (tag.startsWith("v") && tag > "v5.1" && tag < "v6.0") {
         return "go1.16"
     }
-    if (tag.startsWith("v") && tag >= "v6.0" && tag < "v6.3") {
+    if (tag.startsWith("v") && tag >= "v6.1" && tag < "v6.1.3") {
         return "go1.18"
     }
     if (branch.startsWith("release-") && branch < "release-5.1"){
@@ -149,9 +149,6 @@ def String needUpgradeGoVersion(String tag,String branch) {
     }
     if (branch.startsWith("release-") && branch >= "release-5.1" && branch < "release-6.0"){
         return "go1.16"
-    }
-    if (branch.startsWith("release-") && branch >= "release-6.0" && branch < "release-6.3"){
-        return "go1.18"
     }
     if (branch.startsWith("hz-poc") || branch.startsWith("arm-dup") ) {
         return "go1.16"
