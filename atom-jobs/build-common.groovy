@@ -113,6 +113,7 @@ if (params.FAILPOINT) {
 
 // check if binary already has been built. 
 def ifFileCacheExists() {
+    return false
     if (params.FORCE_REBUILD){
         return false
     } 
@@ -153,6 +154,13 @@ def String needUpgradeGoVersion(String tag,String branch) {
     }
     if (branch.startsWith("release-") && branch >= "release-5.1" && branch < "release-6.0"){
         return "go1.16"
+    }
+    // special for release-6.1 later versions
+    if (branch == "release-6.1"){
+        return "go1.19"
+    }
+    if (branch.startsWith("release-") && branch >= "release-6.0" && branch < "release-6.3"){
+        return "go1.18"
     }
     if (branch.startsWith("hz-poc") || branch.startsWith("arm-dup") ) {
         return "go1.16"
