@@ -113,7 +113,7 @@ if (params.FAILPOINT) {
 
 // check if binary already has been built. 
 def ifFileCacheExists() {
-    return false
+    // return false // to re-run force build
     if (params.FORCE_REBUILD){
         return false
     } 
