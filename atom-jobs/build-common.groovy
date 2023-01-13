@@ -890,7 +890,13 @@ def packageBinary() {
 
 def release(product, label) {
     checkoutStartTimeInMillis = System.currentTimeMillis()
-    checkoutCode()
+    if (label != '') {
+        container(label) {
+            checkoutCode()
+        }
+    } else {
+        checkoutCode()
+    }
     checkoutFinishTimeInMillis = System.currentTimeMillis()
 
     if (PRODUCT == 'tics') {
@@ -973,7 +979,9 @@ def run_with_arm_go_pod(Closure body) {
     ) {
         node(label) {
             println "debug command:\nkubectl -n ${namespace} exec -ti ${NODE_NAME} bash"
-            body()
+            container("golang") {
+                body()
+            }
         }
     }
 }
