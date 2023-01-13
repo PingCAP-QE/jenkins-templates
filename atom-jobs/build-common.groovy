@@ -882,6 +882,8 @@ def packageBinary() {
         cd ${TARGET}
         tar --exclude=${TARGET}.tar.gz -czvf ${TARGET}.tar.gz *
         curl -F ${OUTPUT_BINARY}=@${TARGET}.tar.gz ${FILE_SERVER_URL}/upload
+        sha256sum ${TARGET}.tar.gz | cut -d ' ' -f 1 >${TARGET}.tar.gz.sha256
+        curl -F ${OUTPUT_BINARY}.sha256=@${TARGET}.tar.gz.sha256 ${FILE_SERVER_URL}/upload
         """
     }
 }
