@@ -84,6 +84,7 @@ spec:
   nodeSelector:
     enable-ci: true
     ci-nvme-high-performance: true
+    kubernetes.io/arch: amd64
   tolerations:
   - key: dedicated
     operator: Equal
