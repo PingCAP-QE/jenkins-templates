@@ -22,8 +22,8 @@ node("delivery") {
             sh """
     export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-bundle.crt
     upload.py ${target}  ${target}
-    aws s3 cp ${target} s3://download.pingcap.org/${target} --acl public-read
-    echo "upload ${target} successed!\n[########download path#########]: https://download.pingcap.org/${target}"
+    aws s3 cp ${target} s3://download.pingcap.com/${target} --acl public-read
+    echo "upload ${target} successed!\n[########download path#########]: https://download.pingcap.com/${target}"
     """
         }
     }
